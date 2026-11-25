@@ -5,59 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#121417">
-  <title>LazyArbiter Live Chess - Transmisja na żywo</title>
+  <meta name="theme-color" content="#0d1117">
+  <title>LazyArbiter Live Chess - Studio & Analiza</title>
   <style>
     :root {
-      --bg-color: #0f1115;
-      --card-bg: #1a1e24;
-      --card-border: #2a303c;
-      --text-main: #f0f3f6;
-      --text-muted: #8c96a5;
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --card-hover: #1f242c;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
       --accent-green: #22c55e;
       --accent-amber: #f59e0b;
       --accent-red: #ef4444;
-      --accent-blue: #3b82f6;
       --sq-light: #f0d9b5;
       --sq-dark: #b58863;
-      --sq-highlight: rgba(255, 235, 59, 0.5);
+      --sq-highlight: rgba(255, 235, 59, 0.45);
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --radius: 8px;
     }
 
-    body.light-theme {
-      --bg-color: #f3f4f6;
+    body.theme-light {
+      --bg-color: #f6f8fa;
       --card-bg: #ffffff;
-      --card-border: #e5e7eb;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --sq-light: #f0d9b5;
-      --sq-dark: #b58863;
+      --card-border: #d0d7de;
+      --card-hover: #f3f4f6;
+      --text-main: #1f2328;
+      --text-muted: #656d76;
+      --sq-light: #eae9d2;
+      --sq-dark: #4b7399;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body.theme-wood {
+      --bg-color: #1a1412;
+      --card-bg: #271e19;
+      --card-border: #423229;
+      --card-hover: #332720;
+      --text-main: #f3e9e2;
+      --text-muted: #a39287;
+      --sq-light: #dfc08f;
+      --sq-dark: #8b5a2b;
+    }
+
+    body.theme-obs-green {
+      --bg-color: #00ff00 !important;
+      background: #00ff00 !important;
+    }
+
+    body.theme-obs-transparent {
+      --bg-color: transparent !important;
+      background: transparent !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: var(--font-family);
-      line-height: 1.4;
-      padding-bottom: 30px;
-      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background-color 0.2s, color 0.2s;
     }
 
-    /* Top Navigation Header */
+    /* Top Studio Header */
     header {
-      background: var(--card-bg);
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--card-border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 10px 16px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
     }
 
     .brand-wrap {
@@ -66,19 +98,39 @@
       gap: 10px;
     }
 
-    .brand-logo {
-      font-size: 20px;
+    .brand-logo { font-size: 24px; line-height: 1; }
+    .brand-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-sub { font-size: 11px; color: var(--text-muted); }
+
+    .mode-switch-group {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
     }
 
-    .brand-title {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .brand-sub {
-      font-size: 11px;
+    .mode-btn {
+      background: transparent;
+      border: none;
       color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .mode-btn:hover { color: var(--text-main); }
+    .mode-btn.active {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
 
     .status-badge {
@@ -86,157 +138,475 @@
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
-      border-radius: 20px;
+      border-radius: 14px;
       font-size: 11px;
       font-weight: 600;
-      background: rgba(34, 197, 94, 0.12);
+      background: rgba(34, 197, 94, 0.15);
       color: var(--accent-green);
       border: 1px solid rgba(34, 197, 94, 0.3);
+      white-space: nowrap;
     }
+
     .status-badge.connecting {
-      background: rgba(245, 158, 11, 0.12);
+      background: rgba(245, 158, 11, 0.15);
       color: var(--accent-amber);
       border-color: rgba(245, 158, 11, 0.3);
     }
+
     .status-badge.disconnected {
-      background: rgba(239, 68, 68, 0.12);
+      background: rgba(239, 68, 68, 0.15);
       color: var(--accent-red);
       border-color: rgba(239, 68, 68, 0.3);
     }
+
     .pulse-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background-color: currentColor;
+      background: currentColor;
       box-shadow: 0 0 8px currentColor;
+      animation: pulse 1.6s infinite ease-in-out;
     }
 
-    .controls-wrap {
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .btn {
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-main);
       padding: 6px 12px;
-      border-radius: 8px;
+      border-radius: var(--radius);
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      transition: all 0.15s ease;
-    }
-    .btn:hover, .btn:active {
-      background: rgba(255, 255, 255, 0.12);
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
     }
 
-    /* Tournament Sub-header */
-    .sub-bar {
-      padding: 10px 16px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-muted);
+    .btn:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
     }
 
-    .tourn-name {
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
       font-weight: 600;
-      color: var(--text-main);
-      font-size: 14px;
+      border-color: var(--accent);
     }
 
-    /* Boards Grid */
-    .boards-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      padding: 0 16px;
-      max-width: 1800px;
-      margin: 0 auto;
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #fff;
     }
 
-    @media (min-width: 600px) {
-      .boards-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 1024px) {
-      .boards-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (min-width: 1440px) {
-      .boards-grid { grid-template-columns: repeat(4, 1fr); }
+    .btn-danger { color: var(--accent-red); }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--accent-red);
     }
 
-    /* Game Card */
-    .game-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: transform 0.15s ease, border-color 0.15s ease;
-      cursor: pointer;
-    }
-    .game-card:hover {
-      border-color: #3b82f6;
-    }
-
-    .card-header {
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--card-border);
-      background: rgba(0, 0, 0, 0.1);
-    }
-
-    .board-num {
-      font-size: 13px;
+    .btn-live {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--accent-green);
+      border-color: var(--accent-green);
       font-weight: 700;
-      color: var(--text-main);
+    }
+
+    .btn-live:hover {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    /* Judge Announcement Banner */
+    #judgeAnnouncementBar {
+      display: none;
+      background: linear-gradient(90deg, #d97706, #b45309);
+      color: #ffffff;
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 95;
+    }
+
+    #judgeAnnouncementBar.pulsing {
+      animation: bannerPulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bannerPulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.25); box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+    }
+
+    /* Round Countdown Timer Overlay */
+    #roundTimerBar {
+      display: none;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 2px solid var(--accent);
+      padding: 8px 16px;
+      text-align: center;
+      font-family: monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      z-index: 94;
+    }
+
+    /* Control Panel Container */
+    #controlPanelContainer {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 16px;
+      transition: all 0.25s ease;
+    }
+
+    .panel-tabs-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
-    .game-status-pill {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.08);
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .table-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .table-container {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+    }
+
+    .boards-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .boards-table th {
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text-muted);
-    }
-    .game-status-pill.live {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--accent-green);
-    }
-    .game-status-pill.finished {
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--accent-blue);
+      font-weight: 600;
+      padding: 8px 12px;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--card-border);
     }
 
-    /* Player Row */
-    .player-row {
+    .boards-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .boards-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .badge-live {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--accent-green);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 10px;
+    }
+
+    .badge-ended {
+      background: rgba(140, 150, 165, 0.2);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .control-card {
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .control-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-option {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-option.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      border-color: var(--accent);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-color);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .form-input:focus { border-color: var(--accent); }
+
+    .timer-display {
+      font-family: monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin: 8px 0;
+      letter-spacing: 2px;
+    }
+
+    .link-box {
+      background: var(--bg-color);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
       gap: 8px;
-      background: var(--card-bg);
-      transition: background 0.2s ease;
+      margin-top: 6px;
     }
+
+    .link-text {
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--accent);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Main Boards View */
+    main.boards-view {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sub-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding: 0 4px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .tourn-name {
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 15px;
+    }
+
+    .round-selector-subbar {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      margin-left: 10px;
+      flex-wrap: wrap;
+    }
+
+    .round-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .round-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-main);
+    }
+
+    .round-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .round-pill.live-badge {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .round-pill.live-badge.active {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: #fff;
+    }
+
+    .boards-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      align-items: start;
+    }
+
+    .boards-grid.cols-1 { grid-template-columns: minmax(0, 560px); justify-content: center; }
+    .boards-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .boards-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .boards-grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .game-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.15s, border-color 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .game-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .board-num {
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 6px;
+      margin: 2px 0;
+      font-size: 13px;
+      background: rgba(0, 0, 0, 0.1);
+      transition: background 0.15s;
+    }
+
     .player-row.active-turn {
-      background: rgba(34, 197, 94, 0.08);
-      border-left: 3px solid var(--accent-green);
+      background: rgba(56, 189, 248, 0.15);
+      border-left: 3px solid var(--accent);
     }
 
     .player-info {
@@ -245,37 +615,30 @@
       gap: 8px;
       overflow: hidden;
       white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .piece-indicator {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      display: inline-block;
-      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      border: 1px solid #777;
     }
-    .piece-indicator.white {
-      background: #ffffff;
-      border: 1px solid #999;
-    }
-    .piece-indicator.black {
-      background: #1e1e1e;
-      border: 1px solid #555;
-    }
+
+    .piece-indicator.white { background: #ffffff; }
+    .piece-indicator.black { background: #222222; }
 
     .player-title {
       font-size: 10px;
       font-weight: 700;
       padding: 1px 4px;
       border-radius: 3px;
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--accent-amber);
+      background: #ca8a04;
+      color: #000;
     }
 
     .player-name {
-      font-size: 13px;
       font-weight: 600;
-      color: var(--text-main);
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -283,43 +646,31 @@
     .player-rating {
       font-size: 11px;
       color: var(--text-muted);
-      margin-left: 4px;
     }
 
     .player-clock {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: monospace;
       font-size: 14px;
       font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.25);
-      color: var(--text-main);
-      min-width: 60px;
-      text-align: center;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.2);
     }
+
     .player-clock.active {
-      background: rgba(34, 197, 94, 0.2);
-      color: var(--accent-green);
-      box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
-    }
-    .player-clock.low-time {
-      background: rgba(239, 68, 68, 0.25);
-      color: var(--accent-red);
-      animation: blink 1s infinite alternate;
+      background: var(--accent);
+      color: #000;
     }
 
-    @keyframes blink {
-      0% { opacity: 1; }
-      100% { opacity: 0.6; }
-    }
-
-    /* Board Area */
     .board-container {
       width: 100%;
       aspect-ratio: 1 / 1;
+      margin: 6px 0;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
       position: relative;
-      background: var(--sq-dark);
-      user-select: none;
     }
 
     .chessboard-grid {
@@ -328,6 +679,8 @@
       grid-template-rows: repeat(8, 1fr);
       width: 100%;
       height: 100%;
+      position: relative;
+      user-select: none;
     }
 
     .square {
@@ -338,141 +691,429 @@
       width: 100%;
       height: 100%;
     }
+
     .square.light { background-color: var(--sq-light); }
     .square.dark { background-color: var(--sq-dark); }
-    .square.highlight {
-      background-color: #f6e05e !important;
-      opacity: 0.85;
+    .square.highlight { background-color: var(--sq-highlight) !important; }
+    .square.selected { background-color: rgba(56, 189, 248, 0.6) !important; }
+
+    .square.legal-dest::after {
+      content: '';
+      position: absolute;
+      width: 24%;
+      height: 24%;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.8);
+      pointer-events: none;
     }
 
     .coord-file, .coord-rank {
       position: absolute;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
+      opacity: 0.65;
       pointer-events: none;
-      line-height: 1;
-    }
-    .coord-file {
-      bottom: 2px;
-      right: 3px;
-    }
-    .coord-rank {
-      top: 2px;
-      left: 3px;
-    }
-    .square.light .coord-file, .square.light .coord-rank { color: var(--sq-dark); }
-    .square.dark .coord-file, .square.dark .coord-rank { color: var(--sq-light); }
-
-    .piece {
-      width: 90%;
-      height: 90%;
-      pointer-events: none;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+      user-select: none;
     }
 
-    .card-footer {
-      padding: 8px 12px;
+    .coord-file { right: 2px; bottom: 1px; }
+    .coord-rank { left: 2px; top: 1px; }
+
+    .hide-coords .coord-file, .hide-coords .coord-rank {
+      display: none !important;
+    }
+
+    svg.piece {
+      width: 86%;
+      height: 86%;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+      pointer-events: none;
+    }
+
+    .last-move-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 6px;
       font-size: 11px;
       color: var(--text-muted);
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(0, 0, 0, 0.05);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 4px;
     }
 
-    .last-move-text {
-      font-weight: 600;
-      color: var(--text-main);
+    .move-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 1px 5px;
+      border-radius: 4px;
     }
 
-    /* Empty state */
     .empty-state {
+      grid-column: 1 / -1;
       text-align: center;
       padding: 60px 20px;
       color: var(--text-muted);
     }
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
+
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    body.mode-public header,
+    body.mode-public #controlPanelContainer {
+      display: none !important;
     }
 
-    /* Modal / Single Game View */
-    .modal-overlay {
+    body.mode-public .sub-bar {
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius);
+    }
+
+    #backToPanelBtn {
       position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
+      bottom: 16px;
+      right: 16px;
+      background: rgba(22, 27, 34, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 12px;
-    }
-    .modal-overlay.open {
-      display: flex;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 999;
+      transition: opacity 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+      opacity: 0.3;
     }
 
-    .modal-card {
+    #backToPanelBtn:hover {
+      opacity: 1;
+      background: var(--card-bg);
+      color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    body.mode-public #backToPanelBtn { display: flex; }
+
+    /* ==========================================================================
+       GAME ANALYSIS STUDIO MODAL
+       ========================================================================== */
+    .analysis-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 12px;
+    }
+
+    .analysis-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      max-width: 540px;
+      border-radius: 14px;
       width: 100%;
-      max-height: 94vh;
-      overflow-y: auto;
+      max-width: 1060px;
+      height: 92vh;
+      max-height: 840px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
     }
 
-    .modal-header {
-      padding: 12px 16px;
+    .analysis-header {
+      padding: 10px 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .analysis-title-group {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--card-border);
+      gap: 10px;
+      overflow: hidden;
     }
 
-    .modal-title {
-      font-size: 16px;
+    .analysis-title {
       font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .close-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 22px;
+    /* Live Sync Alert Banner in Analysis */
+    #analysisLiveAlertBar {
+      display: none;
+      background: linear-gradient(90deg, #0284c7, #0369a1);
+      color: #fff;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      animation: alertPulse 1.8s infinite alternate;
+    }
+
+    @keyframes alertPulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.2); }
+    }
+
+    .analysis-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      gap: 16px;
+      padding: 14px;
+    }
+
+    /* Left: Board & Drawing toolbar */
+    .analysis-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 580px;
+      margin: 0 auto;
+      gap: 8px;
+    }
+
+    .analysis-board-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      aspect-ratio: 1 / 1;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      user-select: none;
+    }
+
+    /* SVG Layer for Arrows and Highlights */
+    .arrows-svg-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Drawing Toolbar under Analysis Board */
+    .drawing-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 520px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      background: rgba(0, 0, 0, 0.15);
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+    }
+
+    .color-swatches {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
       cursor: pointer;
-      padding: 4px;
-      line-height: 1;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
     }
 
-    .modal-body {
-      padding: 12px;
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.active { border-color: #fff; transform: scale(1.2); }
+
+    .color-dot.green { background: #22c55e; }
+    .color-dot.red { background: #ef4444; }
+    .color-dot.blue { background: #3b82f6; }
+    .color-dot.yellow { background: #f59e0b; }
+
+    /* Right: Notation & Move Navigation */
+    .analysis-right {
+      width: 380px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      border-left: 1px solid var(--card-border);
+      padding-left: 14px;
     }
 
-    .moves-history-box {
+    /* Clocks card in analysis */
+    .analysis-clocks-card {
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 13px;
-      max-height: 140px;
-      overflow-y: auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      line-height: 1.6;
+      border-radius: var(--radius);
+      padding: 8px;
     }
 
-    .modal-actions {
+    /* Move Navigation Controls Bar */
+    .move-controls-bar {
       display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      padding: 8px 16px 12px;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      padding: 6px;
+      border-radius: var(--radius);
+    }
+
+    .btn-step {
+      flex: 1;
+      padding: 7px 0;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-step:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+    }
+
+    .btn-step:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--card-border);
+    }
+
+    /* Interactive Moves List */
+    .moves-scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .moves-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: monospace;
+    }
+
+    .moves-table tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .moves-table td {
+      padding: 4px 6px;
+    }
+
+    .move-num {
+      color: var(--text-muted);
+      width: 34px;
+      user-select: none;
+    }
+
+    .move-cell {
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-weight: 600;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .move-cell:hover {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent);
+    }
+
+    .move-cell.active-move {
+      background: var(--accent) !important;
+      color: #000 !important;
+      font-weight: 700;
+    }
+
+    /* Variation branch badge */
+    .variation-banner {
+      display: none;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--accent-amber);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Analysis bottom action buttons */
+    .analysis-bottom-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      z-index: 400;
+      transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .analysis-body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .analysis-right {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--card-border);
+        padding-left: 0;
+        padding-top: 12px;
+      }
+      .analysis-card { height: 96vh; }
     }
   </style>
 </head>
@@ -483,63 +1124,403 @@
     <div class="brand-wrap">
       <div class="brand-logo">♟️</div>
       <div>
-        <div class="brand-title">LazyArbiter Live Chess</div>
-        <div class="brand-sub">Transmisja szachowa na żywo</div>
+        <div class="brand-title">LazyArbiter Web Studio</div>
+        <div class="brand-sub">Transmisja i panel sędziowski</div>
       </div>
     </div>
 
-    <div class="status-badge" id="connStatus">
-      <div class="pulse-dot"></div>
-      <span id="connText">Łączenie z chmurą...</span>
+    <!-- Mode Switcher -->
+    <div class="mode-switch-group">
+      <button class="mode-btn active" id="btnModePanel" onclick="setViewMode('panel')">
+        ⚙️ Panel sterowania
+      </button>
+      <button class="mode-btn" id="btnModePublic" onclick="setViewMode('public')">
+        🖥️ Widok publikacji
+      </button>
     </div>
 
-    <div class="controls-wrap">
+    <!-- Status & Quick Actions -->
+    <div class="header-actions">
+      <div class="status-badge" id="connStatus">
+        <div class="pulse-dot"></div>
+        <span id="connText">Łączenie...</span>
+      </div>
+
       <button class="btn" id="roomBtn" title="Zmień pokój transmisji">
         📍 <span id="roomLabel">turniej1</span>
       </button>
+
+      <button class="btn btn-danger" id="clearBufferBtn" title="Wyczyść bufor i stare partie z serwera">
+        🗑️ Wyczyść bufor
+      </button>
+
+      <button class="btn btn-primary" id="copyPublicLinkBtn" title="Kopiuj link do publikacji (OBS/Rzutnik)">
+        🔗 Link do transmisji
+      </button>
+
       <button class="btn" id="themeBtn" title="Zmień motyw">
         🌓
+      </button>
+
+      <button class="btn" id="fullscreenBtn" title="Pełny ekran">
+        ⛶
       </button>
     </div>
   </header>
 
-  <!-- Tournament Info Bar -->
-  <div class="sub-bar">
-    <div>
-      <span class="tourn-name" id="tournName">Oczekiwanie na dane turnieju...</span>
-      <span id="tournRound" style="margin-left: 8px;"></span>
-    </div>
-    <div id="boardsCount" style="font-size: 12px;">Szachownice: 0</div>
+  <!-- Judge Announcement Banner Overlay -->
+  <div id="judgeAnnouncementBar">
+    <span id="judgeAnnouncementText">Prosimy o ciszę na sali gry</span>
   </div>
 
-  <!-- Grid of Live Chessboards -->
-  <main class="boards-grid" id="boardsGrid">
-    <div class="empty-state">
-      <div class="empty-icon">⏳</div>
-      <h3>Oczekiwanie na transmisję...</h3>
-      <p style="font-size: 13px; margin-top: 6px;">Uruchom nadawanie w programie LiveChess lub sprawdź poprawność pokoju.</p>
+  <!-- Round Countdown Timer Overlay -->
+  <div id="roundTimerBar">
+    <span id="roundTimerLabel">Do rozpoczęcia rundy:</span>
+    <span id="roundTimerDigits" style="margin-left: 8px;">05:00</span>
+  </div>
+
+  <!-- Studio Control Panel (Hidden in Public Broadcast Mode) -->
+  <section id="controlPanelContainer">
+    <div class="panel-tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('tab-boards')">♟️ Szachownice i Partie</button>
+      <button class="tab-btn" onclick="switchTab('tab-style')">🎨 Wygląd, Kolumny & OBS</button>
+      <button class="tab-btn" onclick="switchTab('tab-announcements')">📢 Komunikaty & Timer</button>
+      <button class="tab-btn" onclick="switchTab('tab-room')">📡 Pokój & Linki OBS</button>
+    </div>
+
+    <!-- Tab 1: Boards List & Visibility Checkboxes -->
+    <div class="tab-pane active" id="tab-boards">
+      <div class="table-controls-bar">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 13px; font-weight: 600;">Lista partii:</span>
+          <span id="boardsSummaryCount" style="color: var(--accent);">0 partii (0 widocznych)</span>
+          <div id="roundSelectorPanel" class="round-selector-subbar"></div>
+        </div>
+        <div class="btn-group">
+          <button class="btn" onclick="selectAllBoards(true)">✅ Zaznacz wszystkie</button>
+          <button class="btn" onclick="selectAllBoards(false)">⬜ Odznacz wszystkie</button>
+          <button class="btn" onclick="selectOnlyLiveBoards()">⚡ Tylko trwające (LIVE)</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="boards-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Szach.</th>
+              <th>Białe</th>
+              <th>Czarne</th>
+              <th style="width: 140px;">Zegary</th>
+              <th style="width: 100px;">Stan</th>
+              <th style="width: 80px; text-align: center;">Widoczna</th>
+              <th style="width: 90px; text-align: center;">Analiza</th>
+            </tr>
+          </thead>
+          <tbody id="boardsTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                Oczekiwanie na pierwsze partie z pokoju...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 2: Style, Columns & OBS Themes -->
+    <div class="tab-pane" id="tab-style">
+      <div class="style-grid">
+        <div class="control-card">
+          <div class="control-card-title">Układ kolumn siatki</div>
+          <div class="btn-group" id="colsBtnGroup">
+            <button class="btn-option active" onclick="setGridColumns('auto')">Auto</button>
+            <button class="btn-option" onclick="setGridColumns('1')">1 kolumna</button>
+            <button class="btn-option" onclick="setGridColumns('2')">2 kolumny</button>
+            <button class="btn-option" onclick="setGridColumns('3')">3 kolumny</button>
+            <button class="btn-option" onclick="setGridColumns('4')">4 kolumny</button>
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="control-card-title">Motyw wizualny & OBS</div>
+          <div class="btn-group" id="themeBtnGroup">
+            <button class="btn-option active" onclick="setTheme('dark')">🌙 Ciemny</button>
+            <button class="btn-option" onclick="setTheme('light')">☀️ Jasny</button>
+            <button class="btn-option" onclick="setTheme('wood')">🪵 Drewno</button>
+            <button class="btn-option" onclick="setTheme('obs-green')">🟩 Green Screen</button>
+            <button class="btn-option" onclick="setTheme('obs-transparent')">🪟 Przezroczysty</button>
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="control-card-title">Opcje wyświetlania</div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkShowCoords" checked onchange="toggleCoords(this.checked)">
+            Pokaż współrzędne pól (a-h, 1-8)
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkShowMove" checked onchange="toggleLastMove(this.checked)">
+            Pokaż notację ostatniego ruchu
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkFlipAll" onchange="toggleFlipAll(this.checked)">
+            Odwróć szachownice (Czarne na dole)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Announcements & Round Timer -->
+    <div class="tab-pane" id="tab-announcements">
+      <div class="style-grid">
+        <div class="control-card">
+          <div class="control-card-title">Komunikat sędziowski na ekranie</div>
+          <div class="form-group">
+            <label>Treść komunikatu:</label>
+            <input type="text" class="form-input" id="inputAnnouncement" value="Prosimy o ciszę na sali gry">
+          </div>
+          <div class="btn-group" style="margin-bottom: 10px;">
+            <button class="btn" onclick="setAnnouncementTemplate('Prosimy o ciszę na sali gry')">Cisza</button>
+            <button class="btn" onclick="setAnnouncementTemplate('Prosimy o zgłaszanie wyników do sędziego')">Wyniki</button>
+            <button class="btn" onclick="setAnnouncementTemplate('Runda opóźniona o 10 minut')">Opóźnienie</button>
+            <button class="btn" onclick="setAnnouncementTemplate('Przerwa obiadowa do godziny 15:00')">Przerwa</button>
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkShowAnnouncement" onchange="toggleAnnouncement(this.checked)">
+            <b>Wyświetl komunikat na ekranie / rzutniku</b>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkPulseAnnouncement" checked onchange="togglePulseAnnouncement(this.checked)">
+            Animowane pulsowanie komunikatu
+          </label>
+        </div>
+
+        <div class="control-card">
+          <div class="control-card-title">Zegar odliczający do rundy</div>
+          <div class="timer-display" id="ctrlTimerDisplay">05:00</div>
+          <div class="btn-group" style="justify-content: center; margin-bottom: 10px;">
+            <button class="btn btn-primary" id="btnTimerStart" onclick="startTimer()">▶ Start</button>
+            <button class="btn" onclick="pauseTimer()">⏸ Pauza</button>
+            <button class="btn" onclick="resetTimer()">⏹ Reset</button>
+            <button class="btn" onclick="adjustTimer(60)">+1m</button>
+            <button class="btn" onclick="adjustTimer(-60)">-1m</button>
+            <button class="btn" onclick="adjustTimer(300)">+5m</button>
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="chkShowTimer" onchange="toggleTimerDisplay(this.checked)">
+            <b>Wyświetl zegar odliczający na ekranie</b>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Room & Stream Links -->
+    <div class="tab-pane" id="tab-room">
+      <div class="style-grid">
+        <div class="control-card">
+          <div class="control-card-title">Zarządzanie pokojem transmisji</div>
+          <div class="form-group">
+            <label>Aktualna nazwa pokoju:</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" class="form-input" id="inputRoomName" value="turniej1">
+              <button class="btn btn-primary" onclick="changeRoomFromInput()">Zmień</button>
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+            Użyj unikalnej nazwy turnieju (np. <i>mistrzostwa-2026</i>), aby uniknąć mieszania partii z innymi salami.
+          </p>
+          <button class="btn btn-danger" onclick="clearRoomBuffer()">
+            🗑️ Wyczyść bufor pamięci tego pokoju na serwerze
+          </button>
+        </div>
+
+        <div class="control-card">
+          <div class="control-card-title">Gotowe linki do transmisji & OBS</div>
+          <label style="font-size: 12px; color: var(--text-muted);">Link do rzutnika na sali (pełny ekran):</label>
+          <div class="link-box">
+            <span class="link-text" id="linkPublic">...</span>
+            <button class="btn" onclick="copySpecificLink('public')">Kopiuj</button>
+          </div>
+
+          <label style="font-size: 12px; color: var(--text-muted); margin-top: 8px; display: block;">Link do OBS (Green Screen chroma key):</label>
+          <div class="link-box">
+            <span class="link-text" id="linkObsGreen">...</span>
+            <button class="btn" onclick="copySpecificLink('obs-green')">Kopiuj</button>
+          </div>
+
+          <label style="font-size: 12px; color: var(--text-muted); margin-top: 8px; display: block;">Link do OBS (Przezroczyste tło):</label>
+          <div class="link-box">
+            <span class="link-text" id="linkObsTransparent">...</span>
+            <button class="btn" onclick="copySpecificLink('obs-transparent')">Kopiuj</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Boards View -->
+  <main class="boards-view">
+    <div class="sub-bar" id="subBar">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span class="tourn-name" id="tournName">Oczekiwanie na dane turnieju...</span>
+        <span id="tournRound" style="font-weight: 600; color: var(--accent);"></span>
+        <div id="roundSelectorSubBar" class="round-selector-subbar"></div>
+      </div>
+      <div id="boardsCount">Szachownice: 0</div>
+    </div>
+
+    <!-- Grid of Live Chessboards -->
+    <div class="boards-grid" id="boardsGrid">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <h3>Oczekiwanie na transmisję...</h3>
+        <p style="font-size: 13px; margin-top: 6px;">
+          Połączono z pokojem <b id="emptyRoomLabel">turniej1</b>. Uruchom nadawanie w programie LiveChess.
+        </p>
+      </div>
     </div>
   </main>
 
-  <!-- Modal / Single Game Inspection -->
-  <div class="modal-overlay" id="gameModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Szachownica 1</div>
-        <button class="close-btn" id="modalCloseBtn">&times;</button>
+  <!-- Discrete back button visible only in public mode -->
+  <button id="backToPanelBtn" title="Powrót do panelu sterowania" onclick="setViewMode('panel')">
+    ⚙️
+  </button>
+
+  <!-- Toast popup for notifications -->
+  <div class="toast" id="toast">Powiadomienie</div>
+
+  <!-- =========================================================================
+       ANALYSIS STUDIO MODAL (Przestawianie ruchów, strzałki, powrót na żywo)
+       ========================================================================= -->
+  <div class="analysis-overlay" id="analysisModal" onclick="closeAnalysisModal(event)">
+    <div class="analysis-card" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div class="analysis-header">
+        <div class="analysis-title-group">
+          <span style="font-size: 20px;">🔍</span>
+          <div>
+            <div class="analysis-title" id="analysisTitle">Szachownica 1</div>
+            <div style="font-size: 11px; color: var(--text-muted);" id="analysisSubTitle">Mistrzostwa Klubu</div>
+          </div>
+          <span class="status-badge" id="analysisModeBadge" style="margin-left: 6px;">🟢 NA ŻYWO</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn btn-live" id="btnAnalysisReturnLive" onclick="analysisReturnToLive()">
+            🔴 Pozycja na żywo
+          </button>
+          <button class="btn" onclick="toggleAnalysisFullscreen()" title="Pełny ekran analizy">⛶</button>
+          <button class="btn btn-danger" onclick="closeAnalysisModal()" title="Zamknij analizę">✕ Zamknij</button>
+        </div>
       </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Injected dynamically -->
+
+      <!-- Live Move Notification Alert Bar (when user browses past moves) -->
+      <div id="analysisLiveAlertBar">
+        <span id="analysisLiveAlertText">⚡ Nowy ruch na żywo: 14. O-O</span>
+        <button class="btn btn-primary" style="padding: 3px 10px; font-size: 11px;" onclick="analysisReturnToLive()">
+          Przejdź do pozycji na żywo
+        </button>
       </div>
-      <div class="modal-actions">
-        <button class="btn" id="flipBoardBtn">🔄 Obróć szachownicę</button>
-        <button class="btn" id="copyPgnBtn">📋 Kopiuj PGN</button>
-        <button class="btn" id="copyFenBtn">📋 Kopiuj FEN</button>
+
+      <!-- Main Analysis Workspace -->
+      <div class="analysis-body">
+        <!-- Left: Chessboard with Arrow SVG Layer & Toolbar -->
+        <div class="analysis-left">
+          <div class="analysis-board-wrapper" id="analysisBoardWrapper">
+            <!-- Grid of squares & pieces -->
+            <div class="chessboard-grid" id="analysisBoardGrid"></div>
+
+            <!-- SVG Overlay for Arrows & Square Highlights -->
+            <svg class="arrows-svg-layer" id="analysisArrowsSvg" viewBox="0 0 8 8"></svg>
+          </div>
+
+          <!-- Drawing & Board Tools Toolbar -->
+          <div class="drawing-toolbar">
+            <!-- Color Palette for Arrows -->
+            <div class="color-swatches">
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Strzałki (PPM):</span>
+              <div class="color-dot green active" title="Zielona strzałka" onclick="setArrowColor('green')"></div>
+              <div class="color-dot red" title="Czerwona strzałka (atak)" onclick="setArrowColor('red')"></div>
+              <div class="color-dot blue" title="Niebieska strzałka (obrona)" onclick="setArrowColor('blue')"></div>
+              <div class="color-dot yellow" title="Żółta strzałka (plan)" onclick="setArrowColor('yellow')"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display: flex; gap: 6px;">
+              <button class="btn" id="btnTouchDrawToggle" onclick="toggleTouchDrawMode()" title="Tryb rysowania na smartfonie">
+                🏹 Rysuj strzałki
+              </button>
+              <button class="btn" onclick="clearAnalysisArrows()" title="Usuń narysowane strzałki">
+                🧹 Wyczyść strzałki
+              </button>
+              <button class="btn" onclick="toggleAnalysisFlip()" title="Odwróć szachownicę">
+                🔄 Obróć
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Clocks, Move Navigator & Notation List -->
+        <div class="analysis-right">
+          <!-- Clocks Card -->
+          <div class="analysis-clocks-card">
+            <!-- Black Player -->
+            <div class="player-row" id="analysisPlayerRowBlack">
+              <div class="player-info">
+                <span class="piece-indicator black"></span>
+                <span class="player-title" id="analysisBlackTitle"></span>
+                <span class="player-name" id="analysisBlackName">Czarne</span>
+                <span class="player-rating" id="analysisBlackRating"></span>
+              </div>
+              <div class="player-clock" id="analysisBlackClock">--:--</div>
+            </div>
+
+            <!-- White Player -->
+            <div class="player-row" id="analysisPlayerRowWhite" style="margin-top: 4px;">
+              <div class="player-info">
+                <span class="piece-indicator white"></span>
+                <span class="player-title" id="analysisWhiteTitle"></span>
+                <span class="player-name" id="analysisWhiteName">Białe</span>
+                <span class="player-rating" id="analysisWhiteRating"></span>
+              </div>
+              <div class="player-clock" id="analysisWhiteClock">--:--</div>
+            </div>
+          </div>
+
+          <!-- Variation branch indicator -->
+          <div class="variation-banner" id="analysisVariationBanner">
+            <span>💡 <b>Wariant analizy:</b> Badanie alternatywnego posunięcia</span>
+            <button class="btn" style="padding: 2px 6px; font-size: 11px;" onclick="resetAnalysisVariation()">✕ Skasuj wariant</button>
+          </div>
+
+          <!-- Move Step Navigator Controls -->
+          <div class="move-controls-bar">
+            <button class="btn-step" id="btnStepStart" onclick="analysisGoToStart()" title="Początek partii (Home)">|◀</button>
+            <button class="btn-step" id="btnStepPrev" onclick="analysisStepBack()" title="Poprzedni ruch (Strzałka w lewo)">◀</button>
+            <button class="btn-step" id="btnStepNext" onclick="analysisStepForward()" title="Następny ruch (Strzałka w prawo)">▶</button>
+            <button class="btn-step" id="btnStepEnd" onclick="analysisGoToEnd()" title="Ostatni ruch (End)">▶|</button>
+          </div>
+
+          <!-- Interactive Moves Notation Table -->
+          <div class="moves-scroll-container" id="analysisMovesScroll">
+            <table class="moves-table">
+              <tbody id="analysisMovesTbody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Utility Buttons -->
+          <div class="analysis-bottom-actions">
+            <button class="btn" onclick="copyAnalysisFen()" style="flex: 1;">📋 Kopiuj FEN</button>
+            <button class="btn" onclick="copyAnalysisPgn()" style="flex: 1;">📋 Kopiuj PGN</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Vector SVG Chess Pieces Definitions -->
+  <!-- SVG Piece & Marker Definitions -->
   <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <!-- White Pawn -->
@@ -619,29 +1600,86 @@
         <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#2d3748" stroke="#fff" stroke-width="1.2"/>
         <path d="M11.5 37c5.5 3.5 16.5 3.5 22 0v-4c0 0-4.5-2.5-4.5-5.5s3.5-4.5 3.5-4.5c-4.5 0-10 2.5-10 2.5s-5.5-2.5-10-2.5c0 0 3.5 1.5 3.5 4.5s-4.5 5.5-4.5 5.5v4z" fill="#2d3748" stroke="#fff" stroke-width="1.2"/>
       </g>
+    
+      <!-- Arrow markers for Analysis -->
+      <marker id="arrowhead-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#22c55e"/>
+      </marker>
+      <marker id="arrowhead-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#ef4444"/>
+      </marker>
+      <marker id="arrowhead-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#3b82f6"/>
+      </marker>
+      <marker id="arrowhead-yellow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto">
+        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#f59e0b"/>
+      </marker>
+
     </defs>
   </svg>
+
+  <!-- Embedded Chess Engine (chess.min.js) -->
+  <script>
+    var Chess=function(r){var u="b",s="w",l=-1,_="p",A="n",S="b",m="r",y="q",p="k",t="pnbrqkPNBRQK",e="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",g=["1-0","0-1","1/2-1/2","*"],C={b:[16,32,17,15],w:[-16,-32,-17,-15]},T={n:[-18,-33,-31,-14,18,33,31,14],b:[-17,-15,17,15],r:[-16,1,16,-1],q:[-17,-16,-15,1,17,16,15,-1],k:[-17,-16,-15,1,17,16,15,-1]},c=[20,0,0,0,0,0,0,24,0,0,0,0,0,0,20,0,0,20,0,0,0,0,0,24,0,0,0,0,0,20,0,0,0,0,20,0,0,0,0,24,0,0,0,0,20,0,0,0,0,0,0,20,0,0,0,24,0,0,0,20,0,0,0,0,0,0,0,0,20,0,0,24,0,0,20,0,0,0,0,0,0,0,0,0,0,20,2,24,2,20,0,0,0,0,0,0,0,0,0,0,0,2,53,56,53,2,0,0,0,0,0,0,24,24,24,24,24,24,56,0,56,24,24,24,24,24,24,0,0,0,0,0,0,2,53,56,53,2,0,0,0,0,0,0,0,0,0,0,0,20,2,24,2,20,0,0,0,0,0,0,0,0,0,0,20,0,0,24,0,0,20,0,0,0,0,0,0,0,0,20,0,0,0,24,0,0,0,20,0,0,0,0,0,0,20,0,0,0,0,24,0,0,0,0,20,0,0,0,0,20,0,0,0,0,0,24,0,0,0,0,0,20,0,0,20,0,0,0,0,0,0,24,0,0,0,0,0,0,20],v=[17,0,0,0,0,0,0,16,0,0,0,0,0,0,15,0,0,17,0,0,0,0,0,16,0,0,0,0,0,15,0,0,0,0,17,0,0,0,0,16,0,0,0,0,15,0,0,0,0,0,0,17,0,0,0,16,0,0,0,15,0,0,0,0,0,0,0,0,17,0,0,16,0,0,15,0,0,0,0,0,0,0,0,0,0,17,0,16,0,15,0,0,0,0,0,0,0,0,0,0,0,0,17,16,15,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,-15,-16,-17,0,0,0,0,0,0,0,0,0,0,0,0,-15,0,-16,0,-17,0,0,0,0,0,0,0,0,0,0,-15,0,0,-16,0,0,-17,0,0,0,0,0,0,0,0,-15,0,0,0,-16,0,0,0,-17,0,0,0,0,0,0,-15,0,0,0,0,-16,0,0,0,0,-17,0,0,0,0,-15,0,0,0,0,0,-16,0,0,0,0,0,-17,0,0,-15,0,0,0,0,0,0,-16,0,0,0,0,0,0,-17],h={p:0,n:1,b:2,r:3,q:4,k:5},o={NORMAL:"n",CAPTURE:"c",BIG_PAWN:"b",EP_CAPTURE:"e",PROMOTION:"p",KSIDE_CASTLE:"k",QSIDE_CASTLE:"q"},I={NORMAL:1,CAPTURE:2,BIG_PAWN:4,EP_CAPTURE:8,PROMOTION:16,KSIDE_CASTLE:32,QSIDE_CASTLE:64},P=7,w=6,L=1,R=0,N={a8:0,b8:1,c8:2,d8:3,e8:4,f8:5,g8:6,h8:7,a7:16,b7:17,c7:18,d7:19,e7:20,f7:21,g7:22,h7:23,a6:32,b6:33,c6:34,d6:35,e6:36,f6:37,g6:38,h6:39,a5:48,b5:49,c5:50,d5:51,e5:52,f5:53,g5:54,h5:55,a4:64,b4:65,c4:66,d4:67,e4:68,f4:69,g4:70,h4:71,a3:80,b3:81,c3:82,d3:83,e3:84,f3:85,g3:86,h3:87,a2:96,b2:97,c2:98,d2:99,e2:100,f2:101,g2:102,h2:103,a1:112,b1:113,c1:114,d1:115,e1:116,f1:117,g1:118,h1:119},E={w:[{square:N.a1,flag:I.QSIDE_CASTLE},{square:N.h1,flag:I.KSIDE_CASTLE}],b:[{square:N.a8,flag:I.QSIDE_CASTLE},{square:N.h8,flag:I.KSIDE_CASTLE}]},O=new Array(128),k={w:l,b:l},q=s,D={w:0,b:0},K=l,d=0,b=1,Q=[],U={};function x(r){void 0===r&&(r=!1),O=new Array(128),k={w:l,b:l},q=s,D={w:0,b:0},K=l,d=0,b=1,Q=[],r||(U={}),F(M())}function j(){B(e)}function B(r,e){void 0===e&&(e=!1);var n=r.split(/\s+/),t=n[0],o=0;if(!$(r).valid)return!1;x(e);for(var i=0;i<t.length;i++){var f=t.charAt(i);if("/"===f)o+=8;else if(-1!=="0123456789".indexOf(f))o+=parseInt(f,10);else{var a=f<"a"?s:u;W({type:f.toLowerCase(),color:a},fr(o)),o++}}return q=n[1],-1<n[2].indexOf("K")&&(D.w|=I.KSIDE_CASTLE),-1<n[2].indexOf("Q")&&(D.w|=I.QSIDE_CASTLE),-1<n[2].indexOf("k")&&(D.b|=I.KSIDE_CASTLE),-1<n[2].indexOf("q")&&(D.b|=I.QSIDE_CASTLE),K="-"===n[3]?l:N[n[3]],d=parseInt(n[4],10),b=parseInt(n[5],10),F(M()),!0}function $(r){var e="No errors.",n="FEN string must contain six space-delimited fields.",t="6th field (move number) must be a positive integer.",o="5th field (half move counter) must be a non-negative integer.",i="4th field (en-passant square) is invalid.",f="3rd field (castling availability) is invalid.",a="2nd field (side to move) is invalid.",l="1st field (piece positions) does not contain 8 '/'-delimited rows.",u="1st field (piece positions) is invalid [consecutive numbers].",s="1st field (piece positions) is invalid [invalid piece].",p="1st field (piece positions) is invalid [row too large].",c="Illegal en-passant square",v=r.split(/\s+/);if(6!==v.length)return{valid:!1,error_number:1,error:n};if(isNaN(v[5])||parseInt(v[5],10)<=0)return{valid:!1,error_number:2,error:t};if(isNaN(v[4])||parseInt(v[4],10)<0)return{valid:!1,error_number:3,error:o};if(!/^(-|[abcdefgh][36])$/.test(v[3]))return{valid:!1,error_number:4,error:i};if(!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(v[2]))return{valid:!1,error_number:5,error:f};if(!/^(w|b)$/.test(v[1]))return{valid:!1,error_number:6,error:a};var g=v[0].split("/");if(8!==g.length)return{valid:!1,error_number:7,error:l};for(var h=0;h<g.length;h++){for(var E=0,d=!1,b=0;b<g[h].length;b++)if(isNaN(g[h][b])){if(!/^[prnbqkPRNBQK]$/.test(g[h][b]))return{valid:!1,error_number:9,error:s};E+=1,d=!1}else{if(d)return{valid:!1,error_number:8,error:u};E+=parseInt(g[h][b],10),d=!0}if(8!==E)return{valid:!1,error_number:10,error:p}}return"3"==v[3][1]&&"w"==v[1]||"6"==v[3][1]&&"b"==v[1]?{valid:!1,error_number:11,error:c}:{valid:!0,error_number:0,error:e}}function M(){for(var r=0,e="",n=N.a8;n<=N.h1;n++){if(null==O[n])r++;else{0<r&&(e+=r,r=0);var t=O[n].color,o=O[n].type;e+=t===s?o.toUpperCase():o.toLowerCase()}n+1&136&&(0<r&&(e+=r),n!==N.h1&&(e+="/"),r=0,n+=8)}var i="";D[s]&I.KSIDE_CASTLE&&(i+="K"),D[s]&I.QSIDE_CASTLE&&(i+="Q"),D[u]&I.KSIDE_CASTLE&&(i+="k"),D[u]&I.QSIDE_CASTLE&&(i+="q"),i=i||"-";var f=K===l?"-":fr(K);return[e,q,i,f,d,b].join(" ")}function G(r){for(var e=0;e<r.length;e+=2)"string"==typeof r[e]&&"string"==typeof r[e+1]&&(U[r[e]]=r[e+1]);return U}function F(r){0<Q.length||(r!==e?(U.SetUp="1",U.FEN=r):(delete U.SetUp,delete U.FEN))}function i(r){var e=O[N[r]];return e?{type:e.type,color:e.color}:null}function W(r,e){if(!("type"in r&&"color"in r))return!1;if(-1===t.indexOf(r.type.toLowerCase()))return!1;if(!(e in N))return!1;var n=N[e];return(r.type!=p||k[r.color]==l||k[r.color]==n)&&(O[n]={type:r.type,color:r.color},r.type===p&&(k[r.color]=n),F(M()),!0)}function H(r,e,n,t,o){var i={color:q,from:e,to:n,flags:t,piece:r[e].type};return o&&(i.flags|=I.PROMOTION,i.promotion=o),r[n]?i.captured=r[n].type:t&I.EP_CAPTURE&&(i.captured=_),i}function Z(r){function e(r,e,n,t,o){if(r[n].type!==_||or(t)!==R&&or(t)!==P)e.push(H(r,n,t,o));else for(var i=[y,m,S,A],f=0,a=i.length;f<a;f++)e.push(H(r,n,t,o,i[f]))}var n=[],t=q,o=ar(t),i={b:L,w:w},f=N.a8,a=N.h1,l=!1,u=!(void 0!==r&&"legal"in r)||r.legal;if(void 0!==r&&"square"in r){if(!(r.square in N))return[];f=a=N[r.square],l=!0}for(var s=f;s<=a;s++)if(136&s)s+=7;else{var p=O[s];if(null!=p&&p.color===t)if(p.type===_){var c=s+C[t][0];if(null==O[c]){e(O,n,s,c,I.NORMAL);c=s+C[t][1];i[t]===or(s)&&null==O[c]&&e(O,n,s,c,I.BIG_PAWN)}for(v=2;v<4;v++){136&(c=s+C[t][v])||(null!=O[c]&&O[c].color===o?e(O,n,s,c,I.CAPTURE):c===K&&e(O,n,s,K,I.EP_CAPTURE))}}else for(var v=0,g=T[p.type].length;v<g;v++){var h=T[p.type][v];for(c=s;!(136&(c+=h));){if(null!=O[c]){if(O[c].color===t)break;e(O,n,s,c,I.CAPTURE);break}if(e(O,n,s,c,I.NORMAL),"n"===p.type||"k"===p.type)break}}}if(!l||a===k[t]){if(D[t]&I.KSIDE_CASTLE){var E=(d=k[t])+2;null!=O[d+1]||null!=O[E]||V(o,k[t])||V(o,d+1)||V(o,E)||e(O,n,k[t],E,I.KSIDE_CASTLE)}if(D[t]&I.QSIDE_CASTLE){var d;E=(d=k[t])-2;null!=O[d-1]||null!=O[d-2]||null!=O[d-3]||V(o,k[t])||V(o,d-1)||V(o,E)||e(O,n,k[t],E,I.QSIDE_CASTLE)}}if(!u)return n;var b=[];for(s=0,g=n.length;s<g;s++)er(n[s]),X(t)||b.push(n[s]),nr();return b}function z(r,e){var n="";if(r.flags&I.KSIDE_CASTLE)n="O-O";else if(r.flags&I.QSIDE_CASTLE)n="O-O-O";else{var t=function(r,e){for(var n=Z({legal:!e}),t=r.from,o=r.to,i=r.piece,f=0,a=0,l=0,u=0,s=n.length;u<s;u++){var p=n[u].from,c=n[u].to,v=n[u].piece;i===v&&t!==p&&o===c&&(f++,or(t)===or(p)&&a++,ir(t)===ir(p)&&l++)}if(0<f)return 0<a&&0<l?fr(t):0<l?fr(t).charAt(1):fr(t).charAt(0);return""}(r,e);r.piece!==_&&(n+=r.piece.toUpperCase()+t),r.flags&(I.CAPTURE|I.EP_CAPTURE)&&(r.piece===_&&(n+=fr(r.from)[0]),n+="x"),n+=fr(r.to),r.flags&I.PROMOTION&&(n+="="+r.promotion.toUpperCase())}return er(r),f()&&(a()?n+="#":n+="+"),nr(),n}function J(r){return r.replace(/=/,"").replace(/[+#]?[?!]*$/,"")}function V(r,e){for(var n=N.a8;n<=N.h1;n++)if(136&n)n+=7;else if(null!=O[n]&&O[n].color===r){var t=O[n],o=n-e,i=119+o;if(c[i]&1<<h[t.type]){if(t.type===_){if(0<o){if(t.color===s)return!0}else if(t.color===u)return!0;continue}if("n"===t.type||"k"===t.type)return!0;for(var f=v[i],a=n+f,l=!1;a!==e;){if(null!=O[a]){l=!0;break}a+=f}if(!l)return!0}}return!1}function X(r){return V(ar(r),k[r])}function f(){return X(q)}function a(){return f()&&0===Z().length}function n(){return!f()&&0===Z().length}function Y(){for(var r={},e=[],n=0,t=0,o=N.a8;o<=N.h1;o++)if(t=(t+1)%2,136&o)o+=7;else{var i=O[o];i&&(r[i.type]=i.type in r?r[i.type]+1:1,i.type===S&&e.push(t),n++)}if(2===n)return!0;if(3===n&&(1===r[S]||1===r[A]))return!0;if(n===r[S]+2){var f=0,a=e.length;for(o=0;o<a;o++)f+=e[o];if(0===f||f===a)return!0}return!1}function rr(){for(var r=[],e={},n=!1;;){var t=nr();if(!t)break;r.push(t)}for(;;){var o=M().split(" ").slice(0,4).join(" ");if(e[o]=o in e?e[o]+1:1,3<=e[o]&&(n=!0),!r.length)break;er(r.pop())}return n}function er(r){var e,n=q,t=ar(n);if(e=r,Q.push({move:e,kings:{b:k.b,w:k.w},turn:q,castling:{b:D.b,w:D.w},ep_square:K,half_moves:d,move_number:b}),O[r.to]=O[r.from],O[r.from]=null,r.flags&I.EP_CAPTURE&&(q===u?O[r.to-16]=null:O[r.to+16]=null),r.flags&I.PROMOTION&&(O[r.to]={type:r.promotion,color:n}),O[r.to].type===p){if(k[O[r.to].color]=r.to,r.flags&I.KSIDE_CASTLE){var o=r.to-1,i=r.to+1;O[o]=O[i],O[i]=null}else if(r.flags&I.QSIDE_CASTLE){o=r.to+1,i=r.to-2;O[o]=O[i],O[i]=null}D[n]=""}if(D[n])for(var f=0,a=E[n].length;f<a;f++)if(r.from===E[n][f].square&&D[n]&E[n][f].flag){D[n]^=E[n][f].flag;break}if(D[t])for(f=0,a=E[t].length;f<a;f++)if(r.to===E[t][f].square&&D[t]&E[t][f].flag){D[t]^=E[t][f].flag;break}K=r.flags&I.BIG_PAWN?"b"===q?r.to-16:r.to+16:l,r.piece===_||r.flags&(I.CAPTURE|I.EP_CAPTURE)?d=0:d++,q===u&&b++,q=ar(q)}function nr(){var r=Q.pop();if(null==r)return null;var e=r.move;k=r.kings,q=r.turn,D=r.castling,K=r.ep_square,d=r.half_moves,b=r.move_number;var n,t,o=q,i=ar(q);if(O[e.from]=O[e.to],O[e.from].type=e.piece,O[e.to]=null,e.flags&I.CAPTURE)O[e.to]={type:e.captured,color:i};else if(e.flags&I.EP_CAPTURE){var f;f=o===u?e.to-16:e.to+16,O[f]={type:_,color:i}}e.flags&(I.KSIDE_CASTLE|I.QSIDE_CASTLE)&&(e.flags&I.KSIDE_CASTLE?(n=e.to+1,t=e.to-1):e.flags&I.QSIDE_CASTLE&&(n=e.to-2,t=e.to+1),O[n]=O[t],O[t]=null);return e}function tr(r,e){var n=J(r);if(e){var t=n.match(/([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/);if(t)var o=t[1],i=t[2],f=t[3],a=t[4]}for(var l=Z(),u=0,s=l.length;u<s;u++){if(n===J(z(l[u]))||e&&n===J(z(l[u],!0)))return l[u];if(t&&(!o||o.toLowerCase()==l[u].piece)&&N[i]==l[u].from&&N[f]==l[u].to&&(!a||a.toLowerCase()==l[u].promotion))return l[u]}return null}function or(r){return r>>4}function ir(r){return 15&r}function fr(r){var e=ir(r),n=or(r);return"abcdefgh".substring(e,e+1)+"87654321".substring(n,n+1)}function ar(r){return r===s?u:s}function lr(r){var e=function r(e){var n=e instanceof Array?[]:{};for(var t in e)n[t]="object"==typeof t?r(e[t]):e[t];return n}(r);e.san=z(e,!1),e.to=fr(e.to),e.from=fr(e.from);var n="";for(var t in I)I[t]&e.flags&&(n+=o[t]);return e.flags=n,e}function ur(r){return r.replace(/^\s+|\s+$/g,"")}return B(void 0===r?e:r),{WHITE:s,BLACK:u,PAWN:_,KNIGHT:A,BISHOP:S,ROOK:m,QUEEN:y,KING:p,SQUARES:function(){for(var r=[],e=N.a8;e<=N.h1;e++)136&e?e+=7:r.push(fr(e));return r}(),FLAGS:o,load:function(r){return B(r)},reset:function(){return j()},moves:function(r){for(var e=Z(r),n=[],t=0,o=e.length;t<o;t++)void 0!==r&&"verbose"in r&&r.verbose?n.push(lr(e[t])):n.push(z(e[t],!1));return n},in_check:function(){return f()},in_checkmate:function(){return a()},in_stalemate:function(){return n()},in_draw:function(){return 100<=d||n()||Y()||rr()},insufficient_material:function(){return Y()},in_threefold_repetition:function(){return rr()},game_over:function(){return 100<=d||a()||n()||Y()||rr()},validate_fen:function(r){return $(r)},fen:function(){return M()},board:function(){for(var r=[],e=[],n=N.a8;n<=N.h1;n++)null==O[n]?e.push(null):e.push({type:O[n].type,color:O[n].color}),n+1&136&&(r.push(e),e=[],n+=8);return r},pgn:function(r){var e="object"==typeof r&&"string"==typeof r.newline_char?r.newline_char:"\n",n="object"==typeof r&&"number"==typeof r.max_width?r.max_width:0,t=[],o=!1;for(var i in U)t.push("["+i+' "'+U[i]+'"]'+e),o=!0;o&&Q.length&&t.push(e);for(var f=[];0<Q.length;)f.push(nr());for(var a=[],l="";0<f.length;){var u=f.pop();Q.length||"b"!==u.color?"w"===u.color&&(l.length&&a.push(l),l=b+"."):l=b+". ...",l=l+" "+z(u,!1),er(u)}if(l.length&&a.push(l),void 0!==U.Result&&a.push(U.Result),0===n)return t.join("")+a.join(" ");var s=0;for(i=0;i<a.length;i++)s+a[i].length>n&&0!==i?(" "===t[t.length-1]&&t.pop(),t.push(e),s=0):0!==i&&(t.push(" "),s++),t.push(a[i]),s+=a[i].length;return t.join("")},load_pgn:function(r,e){var n=void 0!==e&&"sloppy"in e&&e.sloppy;function l(r){return r.replace(/\\/g,"\\")}var t="object"==typeof e&&"string"==typeof e.newline_char?e.newline_char:"\r?\n",o=new RegExp("^(\\[((?:"+l(t)+")|.)*\\])(?:"+l(t)+"){2}"),i=o.test(r)?o.exec(r)[1]:"";j();var f=function(r,e){for(var n="object"==typeof e&&"string"==typeof e.newline_char?e.newline_char:"\r?\n",t={},o=r.split(new RegExp(l(n))),i="",f="",a=0;a<o.length;a++)i=o[a].replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/,"$1"),f=o[a].replace(/^\[[A-Za-z]+\s"(.*)"\]$/,"$1"),0<ur(i).length&&(t[i]=f);return t}(i,e);for(var a in f)G([a,f[a]]);if("1"===f.SetUp&&!("FEN"in f&&B(f.FEN,!0)))return!1;var u=r.replace(i,"").replace(new RegExp(l(t),"g")," ");u=u.replace(/(\{[^}]+\})+?/g,"");for(var s=/(\([^\(\)]+\))+?/g;s.test(u);)u=u.replace(s,"");var p=ur(u=(u=(u=u.replace(/\d+\.(\.\.)?/g,"")).replace(/\.\.\./g,"")).replace(/\$\d+/g,"")).split(new RegExp(/\s+/));p=p.join(",").replace(/,,+/g,",").split(",");for(var c="",v=0;v<p.length-1;v++){if(null==(c=tr(p[v],n)))return!1;er(c)}if(c=p[p.length-1],-1<g.indexOf(c))!function(r){for(var e in r)return 1}(U)||void 0!==U.Result||G(["Result",c]);else{if(null==(c=tr(c,n)))return!1;er(c)}return!0},header:function(){return G(arguments)},ascii:function(){return function(){for(var r="   +------------------------+\n",e=N.a8;e<=N.h1;e++){if(0===ir(e)&&(r+=" "+"87654321"[or(e)]+" |"),null==O[e])r+=" . ";else{var n=O[e].type;r+=" "+(O[e].color===s?n.toUpperCase():n.toLowerCase())+" "}e+1&136&&(r+="|\n",e+=8)}return r+="   +------------------------+\n",r+="     a  b  c  d  e  f  g  h\n"}()},turn:function(){return q},move:function(r,e){var n=void 0!==e&&"sloppy"in e&&e.sloppy,t=null;if("string"==typeof r)t=tr(r,n);else if("object"==typeof r)for(var o=Z(),i=0,f=o.length;i<f;i++)if(!(r.from!==fr(o[i].from)||r.to!==fr(o[i].to)||"promotion"in o[i]&&r.promotion!==o[i].promotion)){t=o[i];break}if(!t)return null;var a=lr(t);return er(t),a},undo:function(){var r=nr();return r?lr(r):null},clear:function(){return x()},put:function(r,e){return W(r,e)},get:function(r){return i(r)},remove:function(r){return n=i(e=r),O[N[e]]=null,n&&n.type===p&&(k[n.color]=l),F(M()),n;var e,n},perft:function(r){return function r(e){for(var n=Z({legal:!1}),t=0,o=q,i=0,f=n.length;i<f;i++)er(n[i]),X(o)||(0<e-1?t+=r(e-1):t++),nr();return t}(r)},square_color:function(r){if(r in N){var e=N[r];return(or(e)+ir(e))%2==0?"light":"dark"}return null},history:function(r){for(var e=[],n=[],t=(void 0!==r&&"verbose"in r&&r.verbose);0<Q.length;)e.push(nr());for(;0<e.length;){var o=e.pop();t?n.push(lr(o)):n.push(z(o)),er(o)}return n}}};"undefined"!=typeof exports&&(exports.Chess=Chess),"undefined"!=typeof define&&define(function(){return Chess});
+  </script>
 
   <script>
     // State management
     const state = {
+      viewMode: 'panel', // 'panel' or 'public'
+      theme: 'dark',
+      gridCols: 'auto',
+      flipAll: false,
+      showCoords: true,
+      showMove: true,
+      room: 'turniej1',
+      ws: null,
+      reconnectTimer: null,
       tournament: null,
       rounds: {},
       games: {},
       players: {},
-      selectedGameId: null,
-      flipped: false,
-      room: 'turniej1',
-      ws: null,
-      reconnectTimer: null
+      boardVisibility: {},
+      selectedRoundId: null,
+      // Announcements & Timer
+      announcementText: 'Prosimy o ciszę na sali gry',
+      announcementActive: false,
+      announcementPulse: true,
+      timerSeconds: 300,
+      timerRunning: false,
+      timerActive: false,
+      timerInterval: null
     };
 
-    // Determine room from URL or query
-    function initRoom() {
+    // Analysis Studio State
+    const analysis = {
+      activeGameId: null,
+      flipped: false,
+      isLive: true,
+      stepIndex: 0,
+      positions: [],       // Array of FEN strings from initial to current
+      historyMoves: [],    // Array of move objects { san, from, to, piece, color }
+      chessInstance: null, // Chess.js instance
+      variationMoves: [],  // User's played alternate moves
+      selectedSquare: null,
+      legalDests: [],
+      // Arrows & Highlights
+      arrows: [],          // [{ fromCol, fromRow, toCol, toRow, color }]
+      highlights: [],      // [{ col, row, color }]
+      currentColor: 'green',
+      touchDrawMode: false,
+      touchStartSquare: null,
+      dragStartSquare: null
+    };
+
+    // Initialize Parameters from URL
+    function initParams() {
       const urlParams = new URLSearchParams(window.location.search);
+
+      // Room
       const qRoom = urlParams.get('room');
       if (qRoom) {
-        state.room = qRoom;
+        state.room = qRoom.trim();
       } else if (window.location.protocol.startsWith('http')) {
         const pathParts = window.location.pathname.split('/').filter(p => p && p !== 'ws' && !p.endsWith('.html'));
         if (pathParts.length > 0) {
@@ -649,31 +1687,264 @@
         }
       }
       document.getElementById('roomLabel').textContent = state.room;
+      document.getElementById('emptyRoomLabel').textContent = state.room;
+      document.getElementById('inputRoomName').value = state.room;
+
+      // Mode
+      const qMode = urlParams.get('mode') || urlParams.get('view');
+      if (qMode === 'public' || qMode === 'obs') {
+        state.viewMode = 'public';
+      } else {
+        state.viewMode = 'panel';
+      }
+
+      // Theme
+      const qTheme = urlParams.get('theme');
+      if (qTheme) {
+        setTheme(qTheme);
+      } else {
+        const savedTheme = localStorage.getItem('lazyarbiter_theme') || 'dark';
+        setTheme(savedTheme);
+      }
+
+      // Columns
+      const qCols = urlParams.get('cols');
+      if (qCols) {
+        setGridColumns(qCols);
+      }
+
+      updateModeUI();
+      updateStreamLinks();
     }
 
-    // Switch Room
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      updateModeUI();
+      renderAll();
+    }
+
+    function updateModeUI() {
+      const isPublic = state.viewMode === 'public';
+      document.body.classList.toggle('mode-public', isPublic);
+      document.getElementById('btnModePanel').classList.toggle('active', !isPublic);
+      document.getElementById('btnModePublic').classList.toggle('active', isPublic);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) targetPane.classList.add('active');
+    }
+
+    function setTheme(theme) {
+      state.theme = theme;
+      document.body.className = document.body.className
+        .replace(/theme-[a-z0-9-]+/g, '')
+        .trim();
+      document.body.classList.add(`theme-${theme}`);
+      if (state.viewMode === 'public') {
+        document.body.classList.add('mode-public');
+      }
+
+      localStorage.setItem('lazyarbiter_theme', theme);
+      document.querySelectorAll('#themeBtnGroup .btn-option').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${theme}'`));
+      });
+    }
+
+    function setGridColumns(cols) {
+      state.gridCols = cols;
+      const grid = document.getElementById('boardsGrid');
+      grid.className = 'boards-grid';
+      if (cols !== 'auto') {
+        grid.classList.add(`cols-${cols}`);
+      }
+
+      document.querySelectorAll('#colsBtnGroup .btn-option').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${cols}'`));
+      });
+    }
+
+    function toggleCoords(show) {
+      state.showCoords = show;
+      document.getElementById('boardsGrid').classList.toggle('hide-coords', !show);
+    }
+
+    function toggleLastMove(show) {
+      state.showMove = show;
+      renderAll();
+    }
+
+    function toggleFlipAll(flip) {
+      state.flipAll = flip;
+      renderAll();
+    }
+
+    function toggleAnnouncement(show) {
+      state.announcementActive = show;
+      const bar = document.getElementById('judgeAnnouncementBar');
+      bar.style.display = show ? 'block' : 'none';
+      document.getElementById('judgeAnnouncementText').textContent = document.getElementById('inputAnnouncement').value;
+    }
+
+    function togglePulseAnnouncement(pulse) {
+      state.announcementPulse = pulse;
+      document.getElementById('judgeAnnouncementBar').classList.toggle('pulsing', pulse);
+    }
+
+    function setAnnouncementTemplate(text) {
+      document.getElementById('inputAnnouncement').value = text;
+      document.getElementById('judgeAnnouncementText').textContent = text;
+      document.getElementById('chkShowAnnouncement').checked = true;
+      toggleAnnouncement(true);
+      showToast('Włączono komunikat na ekranie!');
+    }
+
+    document.getElementById('inputAnnouncement').addEventListener('input', (e) => {
+      document.getElementById('judgeAnnouncementText').textContent = e.target.value;
+    });
+
+    // Countdown Timer logic
+    function updateTimerDisplay() {
+      const m = Math.floor(state.timerSeconds / 60);
+      const s = state.timerSeconds % 60;
+      const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      document.getElementById('ctrlTimerDisplay').textContent = str;
+      document.getElementById('roundTimerDigits').textContent = str;
+    }
+
+    function startTimer() {
+      if (state.timerRunning) return;
+      state.timerRunning = true;
+      state.timerInterval = setInterval(() => {
+        if (state.timerSeconds > 0) {
+          state.timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          pauseTimer();
+          showToast('Czas rundy dobiegł końca!');
+        }
+      }, 1000);
+      document.getElementById('btnTimerStart').textContent = '▶ Wznów';
+    }
+
+    function pauseTimer() {
+      state.timerRunning = false;
+      if (state.timerInterval) clearInterval(state.timerInterval);
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      state.timerSeconds = 300;
+      updateTimerDisplay();
+      document.getElementById('btnTimerStart').textContent = '▶ Start';
+    }
+
+    function adjustTimer(deltaSec) {
+      state.timerSeconds = Math.max(0, state.timerSeconds + deltaSec);
+      updateTimerDisplay();
+    }
+
+    function toggleTimerDisplay(show) {
+      state.timerActive = show;
+      document.getElementById('roundTimerBar').style.display = show ? 'block' : 'none';
+    }
+
+    // Room & Clear Buffer
     document.getElementById('roomBtn').addEventListener('click', () => {
       const newRoom = prompt('Podaj nazwę pokoju transmisji:', state.room);
       if (newRoom && newRoom.trim() && newRoom.trim() !== state.room) {
-        state.room = newRoom.trim();
-        document.getElementById('roomLabel').textContent = state.room;
-        history.replaceState(null, '', `?room=${encodeURIComponent(state.room)}`);
-        reconnectWebSocket();
+        changeRoom(newRoom.trim());
       }
     });
 
-    // Theme Toggle
-    document.getElementById('themeBtn').addEventListener('click', () => {
-      document.body.classList.toggle('light-theme');
-      const isLight = document.body.classList.contains('light-theme');
-      localStorage.setItem('lazyarbiter_theme', isLight ? 'light' : 'dark');
-    });
-
-    if (localStorage.getItem('lazyarbiter_theme') === 'light') {
-      document.body.classList.add('light-theme');
+    function changeRoomFromInput() {
+      const val = document.getElementById('inputRoomName').value.trim();
+      if (val && val !== state.room) changeRoom(val);
     }
 
-    // Connect WebSocket
+    function changeRoom(newRoom) {
+      state.room = newRoom;
+      document.getElementById('roomLabel').textContent = state.room;
+      document.getElementById('emptyRoomLabel').textContent = state.room;
+      document.getElementById('inputRoomName').value = state.room;
+      history.replaceState(null, '', `?room=${encodeURIComponent(state.room)}&mode=${state.viewMode}`);
+      updateStreamLinks();
+      reconnectWebSocket();
+      showToast(`Przełączono do pokoju: ${state.room}`);
+    }
+
+    document.getElementById('clearBufferBtn').addEventListener('click', clearRoomBuffer);
+
+    function clearRoomBuffer() {
+      if (!confirm(`Czy na pewno wyczyścić pamięć pokoju "${state.room}" na serwerze?\nUsunie to stare/losowe partie z bufora.`)) {
+        return;
+      }
+
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        try {
+          state.ws.send(JSON.stringify({ action: 'clear', type: 'clear_room', room: state.room }));
+        } catch(e) {}
+      }
+
+      fetch(`/api/clear?room=${encodeURIComponent(state.room)}`).catch(() => {});
+
+      state.games = {};
+      state.rounds = {};
+      state.players = {};
+      state.tournament = null;
+      state.selectedRoundId = null;
+      state.boardVisibility = {};
+      renderAll();
+      showToast('Wyczyszczono pamięć pokoju! Oczekiwanie na nową transmisję.');
+    }
+
+    function updateStreamLinks() {
+      const base = window.location.origin + window.location.pathname;
+      document.getElementById('linkPublic').textContent = `${base}?room=${encodeURIComponent(state.room)}&mode=public`;
+      document.getElementById('linkObsGreen').textContent = `${base}?room=${encodeURIComponent(state.room)}&mode=public&theme=obs-green`;
+      document.getElementById('linkObsTransparent').textContent = `${base}?room=${encodeURIComponent(state.room)}&mode=public&theme=obs-transparent`;
+    }
+
+    function copySpecificLink(type) {
+      let text = document.getElementById('linkPublic').textContent;
+      if (type === 'obs-green') text = document.getElementById('linkObsGreen').textContent;
+      if (type === 'obs-transparent') text = document.getElementById('linkObsTransparent').textContent;
+      navigator.clipboard.writeText(text);
+      showToast('Skopiowano link do schowka!');
+    }
+
+    document.getElementById('copyPublicLinkBtn').addEventListener('click', () => {
+      copySpecificLink('public');
+    });
+
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const next = state.theme === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      showToast(`Motyw: ${next}`);
+    });
+
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // WebSocket Connection
     function connectWebSocket() {
       if (state.ws) {
         try { state.ws.close(); } catch(e){}
@@ -704,6 +1975,17 @@
         state.ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            if (data.type === 'room_cleared') {
+              state.games = {};
+              state.rounds = {};
+              state.players = {};
+              state.tournament = null;
+              state.selectedRoundId = null;
+              state.boardVisibility = {};
+              renderAll();
+              showToast('Bufor pokoju został zresetowany');
+              return;
+            }
             handleIncomingData(data);
           } catch (err) {
             console.error('Błąd parsowania JSON:', err);
@@ -738,46 +2020,77 @@
       state.rounds = {};
       state.players = {};
       state.tournament = null;
+      state.selectedRoundId = null;
+      state.boardVisibility = {};
       renderAll();
       connectWebSocket();
     }
 
-    // Parse LiveChess Delta / Snapshot Objects
+    // Process LiveChess frames
     function handleIncomingData(data) {
       const items = data.add || data.list || data.change;
       if (!items || !Array.isArray(items)) return;
 
+      let changedGameId = null;
+
       for (const item of items) {
         if (!item.objects) continue;
-        for (const [key, obj] of Object.entries(item.objects)) {
-          const atIdx = key.indexOf('@');
+        for (const [rawKey, obj] of Object.entries(item.objects)) {
+          const atIdx = rawKey.indexOf('@');
           if (atIdx === -1) continue;
-          const id = key.substring(0, atIdx);
-          const type = key.substring(atIdx + 1);
+          const id = rawKey.substring(0, atIdx).trim();
+          let type = rawKey.substring(atIdx + 1).trim();
+          if (type.includes(';')) {
+            type = type.substring(0, type.indexOf(';')).trim();
+          }
 
           if (type === 'tournament') {
             state.tournament = Object.assign(state.tournament || {}, obj);
+            if (!state.selectedRoundId) {
+              const actR = obj['*activeRound'] || obj.activeRound;
+              if (actR) state.selectedRoundId = String(actR);
+            }
           } else if (type === 'round') {
             state.rounds[id] = Object.assign(state.rounds[id] || {}, obj);
           } else if (type === 'game') {
             const prev = state.games[id] || {};
-            // Parse clock if present
             if (obj.clock) {
               obj._parsedClock = parseClockString(obj.clock);
             } else if (prev._parsedClock) {
               obj._parsedClock = prev._parsedClock;
             }
+            if (state.boardVisibility[id] === undefined) {
+              state.boardVisibility[id] = true;
+            }
             state.games[id] = Object.assign(prev, obj);
+            changedGameId = id;
           } else if (type === 'player') {
             state.players[id] = Object.assign(state.players[id] || {}, obj);
           }
         }
       }
 
+      // Auto-select active round if not set yet
+      if (!state.selectedRoundId && state.tournament) {
+        const actR = state.tournament['*activeRound'] || state.tournament.activeRound;
+        if (actR) state.selectedRoundId = String(actR);
+      }
+      if (!state.selectedRoundId) {
+        const rKeys = Object.keys(state.rounds);
+        if (rKeys.length > 0) {
+          rKeys.sort((a, b) => ((state.rounds[b] && state.rounds[b].nr) || 0) - ((state.rounds[a] && state.rounds[a].nr) || 0));
+          state.selectedRoundId = rKeys[0];
+        }
+      }
+
       renderAll();
+
+      // If Analysis Studio is open for this game, handle live update!
+      if (analysis.activeGameId && analysis.activeGameId === changedGameId) {
+        onAnalysisLiveUpdate(state.games[changedGameId]);
+      }
     }
 
-    // Parse clock: "1795571264619,5400,5380F"
     function parseClockString(str) {
       if (!str) return null;
       const parts = str.split(',');
@@ -794,38 +2107,68 @@
       return { ts, wSec, bSec, running, lastSync: Date.now() };
     }
 
-    // Format Seconds to MM:SS or H:MM:SS
     function formatClock(seconds) {
-      if (seconds == null || isNaN(seconds) || seconds < 0) return "--:--";
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = Math.floor(seconds % 60);
-      if (h > 0) {
-        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      if (seconds === undefined || seconds === null || isNaN(seconds) || seconds < 0) return '--:--';
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      if (m >= 60) {
+        const h = Math.floor(m / 60);
+        const remM = m % 60;
+        return `${h}:${String(remM).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
       }
-      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    // Format Player Name
+    function setBoardVisibility(id, visible) {
+      state.boardVisibility[id] = visible;
+      renderAll();
+    }
+
+    function selectAllBoards(visible) {
+      for (const id of Object.keys(state.games)) {
+        state.boardVisibility[id] = visible;
+      }
+      renderAll();
+    }
+
+    function selectOnlyLiveBoards() {
+      for (const [id, g] of Object.entries(state.games)) {
+        const isLive = g.playing !== false && (!g.result || g.result === '*');
+        state.boardVisibility[id] = isLive;
+      }
+      renderAll();
+    }
+
     function getPlayerDisplay(playerRef) {
-      if (playerRef == null) return { name: "Brak zawodnika", title: "", rating: "" };
-      const p = state.players[playerRef] || playerRef;
-      if (!p) return { name: "Zawodnicy", title: "", rating: "" };
-      const name = `${p.lastName || ''} ${p.firstName || ''}`.trim() || 'Zawodnik';
-      const title = p.title || '';
+      if (playerRef === undefined || playerRef === null) return { name: 'Nieznany', rating: '', title: '' };
+      const p = state.players[playerRef] || state.players[String(playerRef)] || {};
+      const name = `${p.lastName || ''} ${p.firstName || ''}`.trim() || p.name || 'Zawodnik';
       const rating = p.rating ? `(${p.rating})` : '';
-      return { name, title, rating };
+      const title = p.title || '';
+      return { name, rating, title };
     }
 
-    // Determine whose turn it is
     function isWhiteTurn(movesStr) {
       if (!movesStr) return true;
-      const clean = movesStr.trim().replace(/\{[^}]*\}/g, '').replace(/\$\d+/g, '');
-      const tokens = clean.split(/\s+/).filter(t => t && !t.includes('.') && t !== '*' && t !== '1-0' && t !== '0-1' && t !== '1/2-1/2');
-      return tokens.length % 2 === 0;
+      const tokens = movesStr.trim().split(/\s+/).filter(Boolean);
+      let halfMoves = 0;
+      for (const tok of tokens) {
+        if (/^\d+\./.test(tok)) continue;
+        halfMoves++;
+      }
+      return halfMoves % 2 === 0;
     }
 
-    // Render 8x8 Board Grid
+    function extractLastMove(movesStr) {
+      if (!movesStr) return '';
+      const tokens = movesStr.trim().split(/\s+/).filter(Boolean);
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        if (!/^\d+\./.test(tokens[i])) return tokens[i];
+      }
+      return '';
+    }
+
+    // Generate Chessboard HTML
     function createBoardHtml(boardStr, flipped = false) {
       const fen = (boardStr && boardStr.includes('/')) ? boardStr.split(' ')[0] : '8/8/8/8/8/8/8/8';
       const rows = fen.split('/');
@@ -869,275 +2212,831 @@
       return html;
     }
 
-    // Render Full View
+    function selectRound(roundId) {
+      state.selectedRoundId = roundId;
+      renderAll();
+    }
+
+    function renderRoundSelectors() {
+      const subBarContainer = document.getElementById('roundSelectorSubBar');
+      const panelContainer = document.getElementById('roundSelectorPanel');
+      if (!subBarContainer && !panelContainer) return;
+
+      const roundList = Object.entries(state.rounds)
+        .map(([id, r]) => ({ id, ...r }))
+        .sort((a, b) => (a.nr || 0) - (b.nr || 0));
+
+      if (roundList.length <= 1) {
+        if (subBarContainer) subBarContainer.innerHTML = '';
+        if (panelContainer) panelContainer.innerHTML = '';
+        return;
+      }
+
+      const activeRoundId = state.tournament ? String(state.tournament['*activeRound'] || state.tournament.activeRound || '') : '';
+
+      let pillsHtml = '';
+      for (const r of roundList) {
+        const isCurrentSelected = String(state.selectedRoundId) === String(r.id);
+        const isLive = String(r.id) === activeRoundId;
+        const label = `Runda ${r.nr || 1}${isLive ? ' 🔴' : ''}`;
+        const cls = `round-pill ${isLive ? 'live-badge' : ''} ${isCurrentSelected ? 'active' : ''}`;
+        pillsHtml += `<button class="${cls}" onclick="selectRound('${r.id}')">${label}</button>`;
+      }
+
+      const allActive = state.selectedRoundId === 'all';
+      pillsHtml += `<button class="round-pill ${allActive ? 'active' : ''}" onclick="selectRound('all')">Wszystkie</button>`;
+
+      if (subBarContainer) subBarContainer.innerHTML = pillsHtml;
+      if (panelContainer) panelContainer.innerHTML = pillsHtml;
+    }
+
+    // Main Render Function
     function renderAll() {
-      // Tournament header
       const t = state.tournament;
       document.getElementById('tournName').textContent = t ? (t.name || 'Turniej szachowy') : 'Transmisja na żywo';
       
-      const rounds = Object.values(state.rounds);
-      if (rounds.length > 0) {
-        document.getElementById('tournRound').textContent = `• Runda ${rounds[0].nr || 1}`;
+      renderRoundSelectors();
+
+      const roundObj = state.selectedRoundId ? state.rounds[state.selectedRoundId] : null;
+      if (state.selectedRoundId === 'all') {
+        document.getElementById('tournRound').textContent = '• Wszystkie rundy';
+      } else if (roundObj) {
+        document.getElementById('tournRound').textContent = `• Runda ${roundObj.nr || 1}`;
       } else {
-        document.getElementById('tournRound').textContent = '';
+        const rounds = Object.values(state.rounds);
+        if (rounds.length > 0) {
+          document.getElementById('tournRound').textContent = `• Runda ${rounds[0].nr || 1}`;
+        } else {
+          document.getElementById('tournRound').textContent = '';
+        }
       }
 
-      // Games
-      const games = Object.entries(state.games)
-        .map(([id, g]) => ({ id, ...g }))
-        .sort((a, b) => (a.nr || 0) - (b.nr || 0));
+      let allGames = Object.entries(state.games)
+        .map(([id, g]) => ({ id, ...g }));
 
-      document.getElementById('boardsCount').textContent = `Szachownice: ${games.length}`;
+      if (state.selectedRoundId && state.selectedRoundId !== 'all') {
+        const selRound = state.rounds[state.selectedRoundId];
+        const roundGameIds = (selRound && selRound['*games']) ? selRound['*games'].map(String) : [];
+        const filtered = allGames.filter(g => {
+          if (g['*round'] !== undefined && String(g['*round']) === String(state.selectedRoundId)) return true;
+          if (roundGameIds.length > 0 && roundGameIds.includes(String(g.id))) return true;
+          return false;
+        });
+        if (filtered.length > 0) {
+          allGames = filtered;
+        }
+      }
 
+      allGames.sort((a, b) => (a.nr || 0) - (b.nr || 0));
+
+      const visibleGames = allGames.filter(g => state.boardVisibility[g.id] !== false);
+
+      document.getElementById('boardsCount').textContent = `Szachownice: ${visibleGames.length} / ${allGames.length}`;
+      document.getElementById('boardsSummaryCount').textContent = `${allGames.length} partii (${visibleGames.length} widocznych na ekranie)`;
+
+      // Render Table in Control Panel
+      const tbody = document.getElementById('boardsTableBody');
+      if (allGames.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              Brak partii w pokoju <b>${state.room}</b>. Uruchom nadawanie w LiveChess lub wybierz właściwy pokój.
+            </td>
+          </tr>
+        `;
+      } else {
+        let tableRows = '';
+        for (const g of allGames) {
+          const white = getPlayerDisplay(g['*white']);
+          const black = getPlayerDisplay(g['*black']);
+          const isLive = g.playing !== false && (!g.result || g.result === '*');
+          const isVisible = state.boardVisibility[g.id] !== false;
+
+          const clock = g._parsedClock;
+          const wTime = clock ? formatClock(clock.wSec) : '--:--';
+          const bTime = clock ? formatClock(clock.bSec) : '--:--';
+
+          tableRows += `
+            <tr>
+              <td><b>#${g.nr || 1}</b></td>
+              <td>${white.title ? `<span class="player-title">${white.title}</span> ` : ''}${white.name} <span class="player-rating">${white.rating}</span></td>
+              <td>${black.title ? `<span class="player-title">${black.title}</span> ` : ''}${black.name} <span class="player-rating">${black.rating}</span></td>
+              <td style="font-family: monospace;">${wTime} / ${bTime}</td>
+              <td>${isLive ? '<span class="badge-live">LIVE</span>' : `<span class="badge-ended">${g.result || 'Koniec'}</span>`}</td>
+              <td style="text-align: center;">
+                <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="setBoardVisibility('${g.id}', this.checked)" style="width: 16px; height: 16px; cursor: pointer;">
+              </td>
+              <td style="text-align: center;">
+                <button class="btn btn-primary" style="padding: 3px 8px; font-size: 11px;" onclick="openAnalysisModal('${g.id}')">
+                  🔍 Analizuj
+                </button>
+              </td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = tableRows;
+      }
+
+      // Render Grid of Visible Chessboards
       const grid = document.getElementById('boardsGrid');
-      if (games.length === 0) {
+      if (visibleGames.length === 0) {
         grid.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">⏳</div>
-            <h3>Oczekiwanie na ruchy...</h3>
-            <p style="font-size: 13px; margin-top: 6px;">Połączono z pokojem <b>${state.room}</b>. Gdy na szachownicach DGT pojawią się partie, zobaczysz je tutaj natychmiast.</p>
+            <h3>Brak widocznych szachownic</h3>
+            <p style="font-size: 13px; margin-top: 6px;">
+              ${allGames.length > 0 ? 'Wszystkie szachownice zostały odznaczone w panelu sterowania.' : `Połączono z pokojem <b>${state.room}</b>. Oczekiwanie na nadawanie z programu LiveChess.`}
+            </p>
           </div>
         `;
         return;
       }
 
       let gridHtml = '';
-      for (const g of games) {
+      for (const g of visibleGames) {
         const white = getPlayerDisplay(g['*white']);
         const black = getPlayerDisplay(g['*black']);
         const whiteTurn = isWhiteTurn(g.moves);
         const isLive = g.playing !== false && (!g.result || g.result === '*');
 
         let statusText = isLive ? 'LIVE' : (g.result || 'Koniec');
-        let statusClass = isLive ? 'live' : 'finished';
+        let statusClass = isLive ? 'badge-live' : 'badge-ended';
 
         const clock = g._parsedClock;
         const wTime = clock ? formatClock(clock.wSec) : '--:--';
         const bTime = clock ? formatClock(clock.bSec) : '--:--';
-
         const lastMove = extractLastMove(g.moves);
+        const flip = state.flipAll;
+
+        const topPlayer = flip ? white : black;
+        const bottomPlayer = flip ? black : white;
+        const topClock = flip ? wTime : bTime;
+        const bottomClock = flip ? bTime : wTime;
+        const topTurn = flip ? (isLive && whiteTurn) : (isLive && !whiteTurn);
+        const bottomTurn = flip ? (isLive && !whiteTurn) : (isLive && whiteTurn);
+        const topPieceClass = flip ? 'white' : 'black';
+        const bottomPieceClass = flip ? 'black' : 'white';
 
         gridHtml += `
-          <div class="game-card" onclick="openGameModal('${g.id}')">
+          <div class="game-card" onclick="openAnalysisModal('${g.id}')">
             <div class="card-header">
               <span class="board-num">♟️ Szachownica ${g.nr || 1}</span>
-              <span class="game-status-pill ${statusClass}">${statusText}</span>
+              <span class="${statusClass}">${statusText}</span>
             </div>
 
-            <!-- Black Player -->
-            <div class="player-row ${isLive && !whiteTurn ? 'active-turn' : ''}" id="row-${g.id}-black">
+            <!-- Top Player -->
+            <div class="player-row ${topTurn ? 'active-turn' : ''}">
               <div class="player-info">
-                <span class="piece-indicator black"></span>
-                ${black.title ? `<span class="player-title">${black.title}</span>` : ''}
-                <span class="player-name">${black.name}</span>
-                <span class="player-rating">${black.rating}</span>
+                <span class="piece-indicator ${topPieceClass}"></span>
+                ${topPlayer.title ? `<span class="player-title">${topPlayer.title}</span>` : ''}
+                <span class="player-name">${topPlayer.name}</span>
+                <span class="player-rating">${topPlayer.rating}</span>
               </div>
-              <div class="player-clock ${isLive && !whiteTurn ? 'active' : ''}" id="clock-${g.id}-black">${bTime}</div>
+              <div class="player-clock ${topTurn ? 'active' : ''}">${topClock}</div>
             </div>
 
             <!-- Chessboard -->
             <div class="board-container">
-              ${createBoardHtml(g.board, false)}
+              ${createBoardHtml(g.board, flip)}
             </div>
 
-            <!-- White Player -->
-            <div class="player-row ${isLive && whiteTurn ? 'active-turn' : ''}" id="row-${g.id}-white">
+            <!-- Bottom Player -->
+            <div class="player-row ${bottomTurn ? 'active-turn' : ''}">
               <div class="player-info">
-                <span class="piece-indicator white"></span>
-                ${white.title ? `<span class="player-title">${white.title}</span>` : ''}
-                <span class="player-name">${white.name}</span>
-                <span class="player-rating">${white.rating}</span>
+                <span class="piece-indicator ${bottomPieceClass}"></span>
+                ${bottomPlayer.title ? `<span class="player-title">${bottomPlayer.title}</span>` : ''}
+                <span class="player-name">${bottomPlayer.name}</span>
+                <span class="player-rating">${bottomPlayer.rating}</span>
               </div>
-              <div class="player-clock ${isLive && whiteTurn ? 'active' : ''}" id="clock-${g.id}-white">${wTime}</div>
+              <div class="player-clock ${bottomTurn ? 'active' : ''}">${bottomClock}</div>
             </div>
 
-            <!-- Card Footer -->
-            <div class="card-footer">
-              <span>Ostatni ruch: <span class="last-move-text">${lastMove}</span></span>
-              <span>Dotknij, aby powiększyć 🔍</span>
-            </div>
+            ${state.showMove ? `
+            <div class="last-move-bar">
+              <span>Ostatni ruch:</span>
+              <span class="move-badge">${lastMove || '--'}</span>
+            </div>` : ''}
           </div>
         `;
       }
-
       grid.innerHTML = gridHtml;
+    }
 
-      // Update Modal if open
-      if (state.selectedGameId && state.games[state.selectedGameId]) {
-        updateModalContent(state.games[state.selectedGameId]);
+    // =========================================================================
+    // ANALYSIS STUDIO ENGINE & LOGIC
+    // =========================================================================
+
+    function openAnalysisModal(gameId) {
+      analysis.activeGameId = gameId;
+      analysis.flipped = false;
+      analysis.isLive = true;
+      analysis.arrows = [];
+      analysis.highlights = [];
+      analysis.variationMoves = [];
+      analysis.selectedSquare = null;
+      analysis.legalDests = [];
+      analysis.touchDrawMode = false;
+      analysis.touchStartSquare = null;
+
+      loadGameIntoAnalysis(gameId);
+      document.getElementById('analysisModal').style.display = 'flex';
+    }
+
+    function closeAnalysisModal() {
+      document.getElementById('analysisModal').style.display = 'none';
+      analysis.activeGameId = null;
+    }
+
+    function toggleAnalysisFullscreen() {
+      const card = document.querySelector('.analysis-card');
+      if (card.style.maxWidth === '100%') {
+        card.style.maxWidth = '1060px';
+        card.style.height = '92vh';
+      } else {
+        card.style.maxWidth = '100%';
+        card.style.height = '100vh';
       }
     }
 
-    function extractLastMove(movesStr) {
-      if (!movesStr) return 'Brak ruchów';
-      const clean = movesStr.trim().replace(/\{[^}]*\}/g, '').replace(/\$\d+/g, '');
-      const tokens = clean.split(/\s+/).filter(t => t && t !== '*' && t !== '1-0' && t !== '0-1' && t !== '1/2-1/2');
-      if (tokens.length === 0) return 'Brak ruchów';
-      const last = tokens[tokens.length - 1];
-      const moveNum = Math.ceil(tokens.length / 2);
-      const isBlack = tokens.length % 2 === 0;
-      return `${moveNum}${isBlack ? '...' : '.'} ${last}`;
+    function toggleAnalysisFlip() {
+      analysis.flipped = !analysis.flipped;
+      renderAnalysisBoard();
+      renderAnalysisArrows();
     }
 
-    // Modal Operations
-    window.openGameModal = function(gameId) {
-      state.selectedGameId = gameId;
-      state.flipped = false;
-      const game = state.games[gameId];
-      if (!game) return;
-
-      document.getElementById('modalTitle').textContent = `Szachownica ${game.nr || 1} - Szczegóły partii`;
-      updateModalContent(game);
-      document.getElementById('gameModal').classList.add('open');
-    };
-
-    function updateModalContent(game) {
-      const white = getPlayerDisplay(game['*white']);
-      const black = getPlayerDisplay(game['*black']);
-      const whiteTurn = isWhiteTurn(game.moves);
-      const isLive = game.playing !== false && (!game.result || game.result === '*');
-
-      const clock = game._parsedClock;
-      const wTime = clock ? formatClock(clock.wSec) : '--:--';
-      const bTime = clock ? formatClock(clock.bSec) : '--:--';
-
-      const topPlayer = state.flipped ? white : black;
-      const topColor = state.flipped ? 'white' : 'black';
-      const topClock = state.flipped ? wTime : bTime;
-      const topActive = state.flipped ? whiteTurn : !whiteTurn;
-
-      const botPlayer = state.flipped ? black : white;
-      const botColor = state.flipped ? 'black' : 'white';
-      const botClock = state.flipped ? bTime : wTime;
-      const botActive = state.flipped ? !whiteTurn : whiteTurn;
-
-      document.getElementById('modalBody').innerHTML = `
-        <div class="player-row ${isLive && topActive ? 'active-turn' : ''}" style="border-radius: 8px;">
-          <div class="player-info">
-            <span class="piece-indicator ${topColor}"></span>
-            ${topPlayer.title ? `<span class="player-title">${topPlayer.title}</span>` : ''}
-            <span class="player-name" style="font-size: 14px;">${topPlayer.name}</span>
-            <span class="player-rating">${topPlayer.rating}</span>
-          </div>
-          <div class="player-clock ${isLive && topActive ? 'active' : ''}">${topClock}</div>
-        </div>
-
-        <div class="board-container" style="border-radius: 8px; overflow: hidden;">
-          ${createBoardHtml(game.board, state.flipped)}
-        </div>
-
-        <div class="player-row ${isLive && botActive ? 'active-turn' : ''}" style="border-radius: 8px;">
-          <div class="player-info">
-            <span class="piece-indicator ${botColor}"></span>
-            ${botPlayer.title ? `<span class="player-title">${botPlayer.title}</span>` : ''}
-            <span class="player-name" style="font-size: 14px;">${botPlayer.name}</span>
-            <span class="player-rating">${botPlayer.rating}</span>
-          </div>
-          <div class="player-clock ${isLive && botActive ? 'active' : ''}">${botClock}</div>
-        </div>
-
-        <div style="font-weight: 600; font-size: 12px; margin-top: 6px; color: var(--text-muted);">Zapis partii (PGN):</div>
-        <div class="moves-history-box">${game.moves || 'Brak zapisanych posunięć.'}</div>
-      `;
-    }
-
-    document.getElementById('modalCloseBtn').addEventListener('click', () => {
-      document.getElementById('gameModal').classList.remove('open');
-      state.selectedGameId = null;
-    });
-
-    document.getElementById('flipBoardBtn').addEventListener('click', () => {
-      state.flipped = !state.flipped;
-      if (state.selectedGameId && state.games[state.selectedGameId]) {
-        updateModalContent(state.games[state.selectedGameId]);
-      }
-    });
-
-    document.getElementById('copyPgnBtn').addEventListener('click', () => {
-      if (!state.selectedGameId || !state.games[state.selectedGameId]) return;
-      const g = state.games[state.selectedGameId];
-      const pgn = g.moves || '';
-      navigator.clipboard.writeText(pgn).then(() => {
-        alert('Skopiowano PGN partii do schowka!');
+    function setArrowColor(color) {
+      analysis.currentColor = color;
+      document.querySelectorAll('.color-dot').forEach(d => {
+        d.classList.toggle('active', d.classList.contains(color));
       });
-    });
+    }
 
-    document.getElementById('copyFenBtn').addEventListener('click', () => {
-      if (!state.selectedGameId || !state.games[state.selectedGameId]) return;
-      const g = state.games[state.selectedGameId];
-      const fen = g.board || '';
-      navigator.clipboard.writeText(fen).then(() => {
-        alert('Skopiowano pozycję FEN do schowka!');
-      });
-    });
+    function toggleTouchDrawMode() {
+      analysis.touchDrawMode = !analysis.touchDrawMode;
+      const btn = document.getElementById('btnTouchDrawToggle');
+      btn.classList.toggle('btn-primary', analysis.touchDrawMode);
+      btn.textContent = analysis.touchDrawMode ? '🏹 Tryb rysowania: WŁ' : '🏹 Rysuj strzałki';
+      showToast(analysis.touchDrawMode ? 'Włączono tryb rysowania (dotknij pole początkowe i docelowe)' : 'Wyłączono tryb rysowania');
+    }
 
-    // Close modal on click outside
-    document.getElementById('gameModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('gameModal')) {
-        document.getElementById('gameModal').classList.remove('open');
-        state.selectedGameId = null;
-      }
-    });
+    function clearAnalysisArrows() {
+      analysis.arrows = [];
+      analysis.highlights = [];
+      renderAnalysisArrows();
+      showToast('Wyczyszczono strzałki');
+    }
 
-    // Local Smooth Clock Ticking (Every second)
-    setInterval(() => {
-      for (const [id, g] of Object.entries(state.games)) {
-        const isLive = g.playing !== false && (!g.result || g.result === '*');
-        if (!isLive || !g._parsedClock || !g._parsedClock.running) continue;
-        const clock = g._parsedClock;
+    function loadGameIntoAnalysis(gameId) {
+      const g = state.games[gameId];
+      if (!g) return;
 
-        const isWhite = isWhiteTurn(g.moves);
-        if (isWhite && clock.wSec > 0) {
-          clock.wSec--;
-        } else if (!isWhite && clock.bSec > 0) {
-          clock.bSec--;
+      const white = getPlayerDisplay(g['*white']);
+      const black = getPlayerDisplay(g['*black']);
+      document.getElementById('analysisTitle').textContent = `Szachownica ${g.nr || 1} • ${white.name} vs ${black.name}`;
+      document.getElementById('analysisSubTitle').textContent = state.tournament ? (state.tournament.name || 'Turniej szachowy') : 'Transmisja Live';
+
+      // Update Clocks
+      const clock = g._parsedClock;
+      document.getElementById('analysisWhiteClock').textContent = clock ? formatClock(clock.wSec) : '--:--';
+      document.getElementById('analysisBlackClock').textContent = clock ? formatClock(clock.bSec) : '--:--';
+      document.getElementById('analysisWhiteName').textContent = white.name;
+      document.getElementById('analysisBlackName').textContent = black.name;
+      document.getElementById('analysisWhiteRating').textContent = white.rating;
+      document.getElementById('analysisBlackRating').textContent = black.rating;
+      document.getElementById('analysisWhiteTitle').textContent = white.title;
+      document.getElementById('analysisBlackTitle').textContent = black.title;
+
+      // Initialize Chess instance & positions
+      analysis.chessInstance = new Chess();
+      analysis.positions = [analysis.chessInstance.fen()];
+      analysis.historyMoves = [];
+
+      if (g.moves && g.moves.trim()) {
+        try {
+          const tempChess = new Chess();
+          const cleanPgn = g.moves.trim();
+          if (tempChess.load_pgn(cleanPgn)) {
+            const hist = tempChess.history({ verbose: true });
+            analysis.historyMoves = hist;
+            const replayer = new Chess();
+            analysis.positions = [replayer.fen()];
+            for (const m of hist) {
+              replayer.move(m);
+              analysis.positions.push(replayer.fen());
+            }
+          }
+        } catch (e) {
+          console.warn('Błąd parsowania PGN:', e);
         }
+      }
 
-        const wEl = document.getElementById(`clock-${id}-white`);
-        const bEl = document.getElementById(`clock-${id}-black`);
-        if (wEl) wEl.textContent = formatClock(clock.wSec);
-        if (bEl) bEl.textContent = formatClock(clock.bSec);
+      // If positions empty or single, fallback to g.board
+      if (analysis.positions.length <= 1 && g.board) {
+        analysis.positions = [g.board];
+      }
+
+      // Step index to latest
+      analysis.stepIndex = analysis.positions.length - 1;
+      updateAnalysisModeDisplay();
+      renderAnalysisBoard();
+      renderAnalysisNotationTable();
+      renderAnalysisArrows();
+    }
+
+    function onAnalysisLiveUpdate(g) {
+      if (!g) return;
+      const prevTotalMoves = analysis.historyMoves.length;
+
+      // Update clocks immediately
+      const clock = g._parsedClock;
+      document.getElementById('analysisWhiteClock').textContent = clock ? formatClock(clock.wSec) : '--:--';
+      document.getElementById('analysisBlackClock').textContent = clock ? formatClock(clock.bSec) : '--:--';
+
+      // Reload positions from PGN
+      try {
+        const tempChess = new Chess();
+        if (tempChess.load_pgn(g.moves || '')) {
+          const hist = tempChess.history({ verbose: true });
+          const replayer = new Chess();
+          const newPositions = [replayer.fen()];
+          for (const m of hist) {
+            replayer.move(m);
+            newPositions.push(replayer.fen());
+          }
+          analysis.historyMoves = hist;
+          analysis.positions = newPositions;
+
+          if (analysis.isLive) {
+            // Follow live move automatically
+            analysis.stepIndex = analysis.positions.length - 1;
+            renderAnalysisBoard();
+            renderAnalysisNotationTable();
+          } else if (hist.length > prevTotalMoves) {
+            // User is reviewing earlier move: show alert banner!
+            const lastMove = hist[hist.length - 1];
+            const alertBar = document.getElementById('analysisLiveAlertBar');
+            alertBar.style.display = 'flex';
+            document.getElementById('analysisLiveAlertText').textContent = `⚡ Nowy ruch na żywo: ${lastMove.san} (Szachownica ${g.nr || 1})`;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function analysisReturnToLive() {
+      analysis.isLive = true;
+      analysis.variationMoves = [];
+      document.getElementById('analysisVariationBanner').style.display = 'none';
+      document.getElementById('analysisLiveAlertBar').style.display = 'none';
+
+      analysis.stepIndex = analysis.positions.length - 1;
+      analysis.arrows = [];
+      analysis.highlights = [];
+
+      updateAnalysisModeDisplay();
+      renderAnalysisBoard();
+      renderAnalysisNotationTable();
+      renderAnalysisArrows();
+      showToast('Powrót do pozycji na żywo!');
+    }
+
+    function updateAnalysisModeDisplay() {
+      const isAtEnd = analysis.stepIndex === analysis.positions.length - 1;
+      const isLiveActive = analysis.isLive && isAtEnd;
+
+      const badge = document.getElementById('analysisModeBadge');
+      if (isLiveActive) {
+        badge.className = 'status-badge';
+        badge.textContent = '🟢 NA ŻYWO';
+        document.getElementById('btnAnalysisReturnLive').style.display = 'none';
+      } else {
+        badge.className = 'status-badge connecting';
+        badge.textContent = `🟡 ANALIZA: Ruch ${analysis.stepIndex} z ${analysis.positions.length - 1}`;
+        document.getElementById('btnAnalysisReturnLive').style.display = 'inline-flex';
+      }
+
+      // Step buttons disable/enable
+      document.getElementById('btnStepStart').disabled = (analysis.stepIndex === 0);
+      document.getElementById('btnStepPrev').disabled = (analysis.stepIndex === 0);
+      document.getElementById('btnStepNext').disabled = (analysis.stepIndex >= analysis.positions.length - 1);
+      document.getElementById('btnStepEnd').disabled = (analysis.stepIndex >= analysis.positions.length - 1);
+    }
+
+    // Step Navigation
+    function analysisGoToStart() {
+      analysis.isLive = false;
+      analysis.stepIndex = 0;
+      onMoveStepChanged();
+    }
+
+    function analysisStepBack() {
+      if (analysis.stepIndex > 0) {
+        analysis.isLive = false;
+        analysis.stepIndex--;
+        onMoveStepChanged();
+      }
+    }
+
+    function analysisStepForward() {
+      if (analysis.stepIndex < analysis.positions.length - 1) {
+        analysis.stepIndex++;
+        if (analysis.stepIndex === analysis.positions.length - 1) {
+          analysis.isLive = true;
+        }
+        onMoveStepChanged();
+      }
+    }
+
+    function analysisGoToEnd() {
+      analysis.stepIndex = analysis.positions.length - 1;
+      analysis.isLive = true;
+      onMoveStepChanged();
+    }
+
+    function analysisGoToMove(idx) {
+      analysis.stepIndex = idx;
+      analysis.isLive = (idx === analysis.positions.length - 1);
+      onMoveStepChanged();
+    }
+
+    function onMoveStepChanged() {
+      analysis.selectedSquare = null;
+      analysis.legalDests = [];
+      updateAnalysisModeDisplay();
+      renderAnalysisBoard();
+      highlightActiveMoveInTable();
+      renderAnalysisArrows();
+    }
+
+    // Render Analysis Board Grid
+    function renderAnalysisBoard() {
+      const fen = analysis.positions[analysis.stepIndex] || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+      const rows = fen.split(' ')[0].split('/');
+      const grid = document.getElementById('analysisBoardGrid');
+      const flipped = analysis.flipped;
+
+      let html = '';
+      for (let r = 0; r < 8; r++) {
+        const rowIdx = flipped ? 7 - r : r;
+        const rowStr = rows[rowIdx] || '8';
+        const rankNum = flipped ? (rowIdx + 1) : (8 - rowIdx);
+
+        let colIdx = 0;
+        let c = 0;
+        while (c < rowStr.length && colIdx < 8) {
+          const ch = rowStr[c++];
+          const num = parseInt(ch, 10);
+          if (!isNaN(num)) {
+            for (let empty = 0; empty < num && colIdx < 8; empty++) {
+              const displayCol = flipped ? (7 - colIdx) : colIdx;
+              const fileLetter = String.fromCharCode(97 + displayCol);
+              const isLight = (rowIdx + displayCol) % 2 === 0;
+              const sqName = `${fileLetter}${rankNum}`;
+              const isSelected = (analysis.selectedSquare === sqName);
+              const isLegalDest = analysis.legalDests.includes(sqName);
+
+              html += `<div class="square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''} ${isLegalDest ? 'legal-dest' : ''}" data-square="${sqName}" data-col="${displayCol}" data-row="${rowIdx}" onclick="onAnalysisSquareClick('${sqName}')">`;
+              if (r === 7) html += `<span class="coord-file">${fileLetter}</span>`;
+              if (colIdx === 0) html += `<span class="coord-rank">${rankNum}</span>`;
+              html += `</div>`;
+              colIdx++;
+            }
+          } else {
+            const displayCol = flipped ? (7 - colIdx) : colIdx;
+            const fileLetter = String.fromCharCode(97 + displayCol);
+            const isLight = (rowIdx + displayCol) % 2 === 0;
+            const sqName = `${fileLetter}${rankNum}`;
+            const isSelected = (analysis.selectedSquare === sqName);
+            const isLegalDest = analysis.legalDests.includes(sqName);
+
+            html += `<div class="square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''} ${isLegalDest ? 'legal-dest' : ''}" data-square="${sqName}" data-col="${displayCol}" data-row="${rowIdx}" onclick="onAnalysisSquareClick('${sqName}')">`;
+            if (r === 7) html += `<span class="coord-file">${fileLetter}</span>`;
+            if (colIdx === 0) html += `<span class="coord-rank">${rankNum}</span>`;
+            html += `<svg class="piece" viewBox="0 0 45 45"><use href="#p-${ch}"/></svg>`;
+            html += `</div>`;
+            colIdx++;
+          }
+        }
+      }
+      grid.innerHTML = html;
+    }
+
+    // Making interactive variation moves on board
+    function onAnalysisSquareClick(sqName) {
+      if (analysis.touchDrawMode) {
+        handleTouchSquareDraw(sqName);
+        return;
+      }
+
+      const fen = analysis.positions[analysis.stepIndex];
+      const chess = new Chess(fen);
+
+      // If square already selected and clicked legal dest, make move!
+      if (analysis.selectedSquare && analysis.legalDests.includes(sqName)) {
+        const move = chess.move({ from: analysis.selectedSquare, to: sqName, promotion: 'q' });
+        if (move) {
+          analysis.isLive = false;
+          // Add new position to branch
+          const newFen = chess.fen();
+          analysis.positions = analysis.positions.slice(0, analysis.stepIndex + 1);
+          analysis.positions.push(newFen);
+          analysis.stepIndex++;
+
+          analysis.variationMoves.push(move.san);
+          document.getElementById('analysisVariationBanner').style.display = 'flex';
+
+          analysis.selectedSquare = null;
+          analysis.legalDests = [];
+          updateAnalysisModeDisplay();
+          renderAnalysisBoard();
+          return;
+        }
+      }
+
+      // Check if clicking own piece
+      const piece = chess.get(sqName);
+      if (piece && piece.color === chess.turn()) {
+        analysis.selectedSquare = sqName;
+        const validMoves = chess.moves({ square: sqName, verbose: true });
+        analysis.legalDests = validMoves.map(m => m.to);
+      } else {
+        analysis.selectedSquare = null;
+        analysis.legalDests = [];
+      }
+
+      renderAnalysisBoard();
+    }
+
+    function resetAnalysisVariation() {
+      loadGameIntoAnalysis(analysis.activeGameId);
+      document.getElementById('analysisVariationBanner').style.display = 'none';
+      showToast('Wariant analizy skasowany');
+    }
+
+    // Touch Draw Mode (Mobile tap-to-draw)
+    function handleTouchSquareDraw(sqName) {
+      const squareEl = document.querySelector(`.square[data-square="${sqName}"]`);
+      if (!squareEl) return;
+      const col = parseInt(squareEl.getAttribute('data-col'), 10);
+      const row = parseInt(squareEl.getAttribute('data-row'), 10);
+
+      if (!analysis.touchStartSquare) {
+        analysis.touchStartSquare = { col, row };
+        showToast(`Wybrano początek: ${sqName}. Teraz dotknij pole docelowe.`);
+      } else {
+        const start = analysis.touchStartSquare;
+        if (start.col === col && start.row === row) {
+          // Toggle highlight
+          toggleHighlight(col, row, analysis.currentColor);
+        } else {
+          // Toggle arrow
+          toggleArrow(start.col, start.row, col, row, analysis.currentColor);
+        }
+        analysis.touchStartSquare = null;
+        renderAnalysisArrows();
+      }
+    }
+
+    // Render Notation Table
+    function renderAnalysisNotationTable() {
+      const tbody = document.getElementById('analysisMovesTbody');
+      const hist = analysis.historyMoves;
+
+      if (!hist || hist.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted); text-align:center; padding:12px;">Brak ruchów</td></tr>';
+        return;
+      }
+
+      let rows = '';
+      for (let i = 0; i < hist.length; i += 2) {
+        const moveNum = Math.floor(i / 2) + 1;
+        const whiteMove = hist[i];
+        const blackMove = hist[i + 1];
+
+        const whiteStepIdx = i + 1;
+        const blackStepIdx = i + 2;
+
+        const isWhiteActive = (analysis.stepIndex === whiteStepIdx);
+        const isBlackActive = (analysis.stepIndex === blackStepIdx);
+
+        rows += `
+          <tr>
+            <td class="move-num">${moveNum}.</td>
+            <td><span class="move-cell ${isWhiteActive ? 'active-move' : ''}" onclick="analysisGoToMove(${whiteStepIdx})">${whiteMove.san}</span></td>
+            <td>${blackMove ? `<span class="move-cell ${isBlackActive ? 'active-move' : ''}" onclick="analysisGoToMove(${blackStepIdx})">${blackMove.san}</span>` : ''}</td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = rows;
+      highlightActiveMoveInTable();
+    }
+
+    function highlightActiveMoveInTable() {
+      document.querySelectorAll('.move-cell').forEach((cell, idx) => {
+        cell.classList.toggle('active-move', idx + 1 === analysis.stepIndex);
+      });
+      // Scroll to active move
+      const activeEl = document.querySelector('.move-cell.active-move');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    // =========================================================================
+    // ARROWS & SQUARE HIGHLIGHTS DRAWING (Desktop Right-Click & Drag)
+    // =========================================================================
+
+    const boardWrapper = document.getElementById('analysisBoardWrapper');
+
+    boardWrapper.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // Prevent browser right-click context menu
+    });
+
+    boardWrapper.addEventListener('mousedown', (e) => {
+      if (e.button === 2) { // Right Click
+        const sq = getSquareFromMouseEvent(e);
+        if (sq) {
+          analysis.dragStartSquare = sq;
+        }
+      } else if (e.button === 0) { // Left Click
+        // Clear arrows if clicked on board outside piece
+      }
+    });
+
+    boardWrapper.addEventListener('mouseup', (e) => {
+      if (e.button === 2 && analysis.dragStartSquare) {
+        const endSq = getSquareFromMouseEvent(e);
+        if (endSq) {
+          const start = analysis.dragStartSquare;
+          if (start.col === endSq.col && start.row === endSq.row) {
+            toggleHighlight(start.col, start.row, analysis.currentColor);
+          } else {
+            toggleArrow(start.col, start.row, endSq.col, endSq.row, analysis.currentColor);
+          }
+          renderAnalysisArrows();
+        }
+        analysis.dragStartSquare = null;
+      }
+    });
+
+    function getSquareFromMouseEvent(e) {
+      const rect = boardWrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return null;
+
+      const colIdx = Math.floor((x / rect.width) * 8);
+      const rowIdx = Math.floor((y / rect.height) * 8);
+
+      const col = analysis.flipped ? (7 - colIdx) : colIdx;
+      const row = analysis.flipped ? (7 - rowIdx) : rowIdx;
+      return { col, row, colIdx, rowIdx };
+    }
+
+    function toggleArrow(fromCol, fromRow, toCol, toRow, color) {
+      const existingIdx = analysis.arrows.findIndex(a =>
+        a.fromCol === fromCol && a.fromRow === fromRow && a.toCol === toCol && a.toRow === toRow
+      );
+      if (existingIdx !== -1) {
+        analysis.arrows.splice(existingIdx, 1);
+      } else {
+        analysis.arrows.push({ fromCol, fromRow, toCol, toRow, color });
+      }
+    }
+
+    function toggleHighlight(col, row, color) {
+      const existingIdx = analysis.highlights.findIndex(h => h.col === col && h.row === row);
+      if (existingIdx !== -1) {
+        analysis.highlights.splice(existingIdx, 1);
+      } else {
+        analysis.highlights.push({ col, row, color });
+      }
+    }
+
+    function renderAnalysisArrows() {
+      const svg = document.getElementById('analysisArrowsSvg');
+      let svgHtml = '';
+      const flipped = analysis.flipped;
+
+      const colorMap = {
+        green: '#22c55e',
+        red: '#ef4444',
+        blue: '#3b82f6',
+        yellow: '#f59e0b'
+      };
+
+      // 1. Render Highlights
+      for (const h of analysis.highlights) {
+        const displayCol = flipped ? (7 - h.col) : h.col;
+        const displayRow = flipped ? (7 - h.row) : h.row;
+        const fill = colorMap[h.color] || '#22c55e';
+        svgHtml += `<rect x="${displayCol}" y="${displayRow}" width="1" height="1" fill="${fill}" opacity="0.35"/>`;
+      }
+
+      // 2. Render Arrows
+      for (const a of analysis.arrows) {
+        const x1 = flipped ? (7 - a.fromCol) : a.fromCol;
+        const y1 = flipped ? (7 - a.fromRow) : a.fromRow;
+        const x2 = flipped ? (7 - a.toCol) : a.toCol;
+        const y2 = flipped ? (7 - a.toRow) : a.toRow;
+
+        const colorHex = colorMap[a.color] || '#22c55e';
+        const colorId = a.color || 'green';
+
+        const dx = Math.abs(x2 - x1);
+        const dy = Math.abs(y2 - y1);
+        const isKnight = (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+
+        if (isKnight) {
+          // L-shaped Knight arrow
+          const midX = (dx === 1) ? x1 + 0.5 : x2 + 0.5;
+          const midY = (dx === 1) ? y2 + 0.5 : y1 + 0.5;
+          const toX = x2 + 0.5;
+          const toY = y2 + 0.5;
+          const dist = Math.hypot(toX - midX, toY - midY) || 1;
+          const ux = (toX - midX) / dist;
+          const uy = (toY - midY) / dist;
+          const ex = toX - ux * 0.22;
+          const ey = toY - uy * 0.22;
+
+          svgHtml += `<path d="M ${x1 + 0.5} ${y1 + 0.5} L ${midX} ${midY} L ${ex} ${ey}" fill="none" stroke="${colorHex}" stroke-width="0.18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" marker-end="url(#arrowhead-${colorId})"/>`;
+        } else {
+          // Straight line arrow
+          const dist = Math.hypot(x2 - x1, y2 - y1) || 1;
+          const ux = (x2 - x1) / dist;
+          const uy = (y2 - y1) / dist;
+          const sx = x1 + 0.5 + ux * 0.24;
+          const sy = y1 + 0.5 + uy * 0.24;
+          const ex = x2 + 0.5 - ux * 0.22;
+          const ey = y2 + 0.5 - uy * 0.22;
+
+          svgHtml += `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${colorHex}" stroke-width="0.18" stroke-linecap="round" opacity="0.85" marker-end="url(#arrowhead-${colorId})"/>`;
+        }
+      }
+
+      svg.innerHTML = svgHtml;
+    }
+
+    // Keyboard Arrow Keys Navigation
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('analysisModal').style.display === 'flex') {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          analysisStepBack();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          analysisStepForward();
+        } else if (e.key === 'Home' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          analysisGoToStart();
+        } else if (e.key === 'End' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          analysisGoToEnd();
+        } else if (e.key === 'Escape') {
+          closeAnalysisModal();
+        }
+      }
+    });
+
+    function copyAnalysisFen() {
+      const fen = analysis.positions[analysis.stepIndex] || '';
+      navigator.clipboard.writeText(fen);
+      showToast('Skopiowano FEN do schowka!');
+    }
+
+    function copyAnalysisPgn() {
+      const g = state.games[analysis.activeGameId];
+      if (!g) return;
+      const white = getPlayerDisplay(g['*white']);
+      const black = getPlayerDisplay(g['*black']);
+      const pgn = `[Event "${state.tournament ? (state.tournament.name || 'Turniej') : 'Turniej'}"]\n[White "${white.name}"]\n[Black "${black.name}"]\n[Result "${g.result || '*'}"]\n\n${g.moves || ''} ${g.result || '*'}`;
+      navigator.clipboard.writeText(pgn);
+      showToast('Skopiowano PGN do schowka!');
+    }
+
+    // Local ticking clock timer
+    setInterval(() => {
+      let anyRunning = false;
+      const now = Date.now();
+      for (const g of Object.values(state.games)) {
+        const c = g._parsedClock;
+        if (c && c.running && c.lastSync) {
+          const deltaSec = Math.floor((now - c.lastSync) / 1000);
+          if (deltaSec >= 1) {
+            c.lastSync = now;
+            const whiteTurn = isWhiteTurn(g.moves);
+            if (whiteTurn && c.wSec > 0) c.wSec--;
+            else if (!whiteTurn && c.bSec > 0) c.bSec--;
+            anyRunning = true;
+          }
+        }
+      }
+      if (anyRunning) {
+        renderAll();
       }
     }, 1000);
 
-    // Demo test data
-    window.loadDemoData = function() {
-      handleIncomingData({
-        add: [{
-          objects: {
-            '1@tournament': { name: 'Mistrzostwa Polski w Szachach 2026', location: 'Warszawa' },
-            '0@round': { nr: 6 },
-            '0@game': {
-              nr: 1,
-              '*white': '0',
-              '*black': '1',
-              moves: '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7',
-              board: 'r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQ1RK1',
-              clock: '1795571264619,5340,5290F',
-              playing: true,
-              result: '*'
-            },
-            '1@game': {
-              nr: 2,
-              '*white': '2',
-              '*black': '3',
-              moves: '1. d4 d5 2. c4 e6 3. Nc3 Nf6',
-              board: 'rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR',
-              clock: '1795571264619,5100,4820F',
-              playing: true,
-              result: '*'
-            },
-            '0@player': { firstName: 'Jan-Krzysztof', lastName: 'Duda', title: 'GM', rating: 2740 },
-            '1@player': { firstName: 'Radosław', lastName: 'Wojtaszek', title: 'GM', rating: 2685 },
-            '2@player': { firstName: 'Mateusz', lastName: 'Bartel', title: 'GM', rating: 2610 },
-            '3@player': { firstName: 'Kacper', lastName: 'Piorun', title: 'GM', rating: 2605 }
-          }
-        }]
-      });
-    };
-
     // Initial Startup
-    initRoom();
+    initParams();
     connectWebSocket();
   </script>
 </body>

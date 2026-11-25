@@ -10,6 +10,20 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 
 ROOMS = {}
 
+async def broadcast_to_room(room_id, message, exclude=None):
+    if room_id not in ROOMS:
+        return
+    room = ROOMS[room_id]
+    dead = set()
+    for sub in list(room["subscribers"]):
+        if sub == exclude:
+            continue
+        try:
+            await sub.send(message)
+        except Exception:
+            dead.add(sub)
+    room["subscribers"] -= dead
+
 async def handler(websocket):
     req_path = getattr(websocket, "path", None)
     if not req_path and hasattr(websocket, "request"):
@@ -20,7 +34,7 @@ async def handler(websocket):
     parsed = urllib.parse.urlparse(req_path)
     params = urllib.parse.parse_qs(parsed.query)
     
-    path_parts = [p for p in parsed.path.split("/") if p and p != "ws"]
+    path_parts = [p for p in parsed.path.split("/") if p and p != "ws" and not p.endswith(".html")]
     room_id = path_parts[0] if path_parts else params.get("room", ["default"])[0]
     role = params.get("role", ["subscriber"])[0]
 
@@ -34,6 +48,17 @@ async def handler(websocket):
         logging.info(f"[NADAJNIK POŁĄCZONY] Pokój: '{room_id}'")
         try:
             async for message in websocket:
+                # Sprawdzenie czy to polecenie czyszczenia bufora
+                try:
+                    if '"action":"clear"' in message.replace(" ", "") or '"type":"clear_room"' in message.replace(" ", ""):
+                        room["last_snapshot"] = None
+                        logging.info(f"[BUFOR WYCZYSZCZONY] Nadajnik wyczyścił pamięć pokoju '{room_id}'")
+                        clear_evt = json.dumps({"type": "room_cleared", "room": room_id})
+                        await broadcast_to_room(room_id, clear_evt)
+                        continue
+                except Exception:
+                    pass
+
                 msg_type = "Dane partii"
                 if '"list"' in message or '"add"' in message:
                     room["last_snapshot"] = message
@@ -47,14 +72,9 @@ async def handler(websocket):
 
                 logging.info(f"[PAKIET] Pokój: '{room_id}' | {msg_type} ({len(message)} bajtów) -> do {len(room['subscribers'])} widzów")
                 
-                # Broadcast live change to all viewers in this room
-                dead = set()
-                for sub in list(room["subscribers"]):
-                    try:
-                        await sub.send(message)
-                    except Exception:
-                        dead.add(sub)
-                room["subscribers"] -= dead
+                # Przekazanie do wszystkich widzów w tym pokoju
+                await broadcast_to_room(room_id, message)
+
         except Exception as e:
             logging.warning(f"[BŁĄD NADAJNIKA] Pokój '{room_id}': {e}")
         finally:
@@ -71,8 +91,16 @@ async def handler(websocket):
             except Exception:
                 pass
         try:
-            async for _ in websocket:
-                pass
+            async for message in websocket:
+                # Widz lub panel sterowania może wysłać żądanie wyczyszczenia bufora pokoju
+                try:
+                    if '"action":"clear"' in message.replace(" ", "") or '"type":"clear_room"' in message.replace(" ", ""):
+                        room["last_snapshot"] = None
+                        logging.info(f"[BUFOR WYCZYSZCZONY] Widz/panel sędziowski wyczyścił pamięć pokoju '{room_id}'")
+                        clear_evt = json.dumps({"type": "room_cleared", "room": room_id})
+                        await broadcast_to_room(room_id, clear_evt)
+                except Exception:
+                    pass
         except Exception:
             pass
         finally:
@@ -91,6 +119,30 @@ def get_viewer_html():
     return "<!DOCTYPE html><html><body><h1>LazyArbiter Relay Server</h1></body></html>"
 
 def process_request(connection_or_path, request_or_headers=None):
+    req_path = "/"
+    if hasattr(connection_or_path, "path"):
+        req_path = connection_or_path.path
+    elif request_or_headers and hasattr(request_or_headers, "path"):
+        req_path = request_or_headers.path
+
+    # Obsługa API czyszczenia bufora przez HTTP GET /api/clear?room=turniej1
+    if "/api/clear" in req_path or "/clear" in req_path:
+        parsed = urllib.parse.urlparse(req_path)
+        params = urllib.parse.parse_qs(parsed.query)
+        r_id = params.get("room", ["turniej1"])[0]
+        if r_id in ROOMS:
+            ROOMS[r_id]["last_snapshot"] = None
+            logging.info(f"[API HTTP] Wycyszczono bufor pokoju '{r_id}'")
+        resp_body = json.dumps({"status": "ok", "room": r_id, "cleared": True})
+        if hasattr(connection_or_path, "respond"):
+            resp = connection_or_path.respond(200, resp_body)
+            resp.headers["Content-Type"] = "application/json; charset=utf-8"
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            return resp
+        else:
+            from http import HTTPStatus
+            return (HTTPStatus.OK, [("Content-Type", "application/json; charset=utf-8"), ("Access-Control-Allow-Origin", "*")], resp_body.encode("utf-8"))
+
     html = get_viewer_html()
     if hasattr(connection_or_path, "respond"):
         req = request_or_headers
