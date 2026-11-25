@@ -2180,6 +2180,8 @@
 
     function reconnectWebSocket() {
       state.remote = null;
+      clockOffsetSamples.length = 0;
+      state.clockOffset = null;
       renderAnnouncementLayer();
       resetData();
       renderAll();
@@ -2251,7 +2253,11 @@
           } else if (type === 'game') {
             const prev = full ? {} : (state.games[key] || {});
             const g = Object.assign(prev, obj, meta);
-            if ('clock' in obj) g._parsedClock = parseClockString(obj.clock);
+            if ('clock' in obj) {
+              g._parsedClock = parseClockString(obj.clock);
+              // bieżąca zmiana zegara -> próbka różnicy zegarów komputera z LiveChess i tego urządzenia
+              if (!full && g._parsedClock) sampleClockOffset(g._parsedClock.ts - Date.now());
+            }
             if (state.boardVisibility[key] === undefined) state.boardVisibility[key] = true;
             state.games[key] = g;
             changed.push(key);
@@ -2410,12 +2416,26 @@
       };
     }
 
+    // Różnica zegarów systemowych (komputer z LiveChess minus to urządzenie). Zegar przychodzi jako
+    // "znacznik_czasu,białe,czarne" - znacznik według zegara komputera na sali. Maksimum z próbek (znacznik - odbiór).
+    const clockOffsetSamples = [];
+    state.clockOffset = null;
+    function sampleClockOffset(v) {
+      const now = Date.now();
+      clockOffsetSamples.push([now, v]);
+      while (clockOffsetSamples.length > 200 || (clockOffsetSamples.length && now - clockOffsetSamples[0][0] > 15 * 60 * 1000)) clockOffsetSamples.shift();
+      state.clockOffset = Math.max(...clockOffsetSamples.map(x => x[1]));
+    }
+
     // Aktualny czas na zegarze (odlicza lokalnie, jeśli zegar chodzi)
     function clockSeconds(clock, side) {
       if (!clock) return null;
       let sec = side === 'w' ? clock.wSec : clock.bSec;
       if (clock.running && clock.turn === (side === 'w' ? 'W' : 'B')) {
-        sec -= Math.floor((Date.now() - clock.receivedAt) / 1000);
+        const elapsedMs = state.clockOffset !== null
+          ? Date.now() + state.clockOffset - clock.ts   // znacznik czasu z LiveChess przeliczony na zegar tego urządzenia
+          : Date.now() - clock.receivedAt;
+        sec -= Math.floor(Math.max(0, elapsedMs) / 1000);
       }
       return Math.max(0, sec);
     }
